@@ -43,6 +43,9 @@ def post(
 
 
 def make_jws(header: dict[str, Any], claims: dict[str, Any], clientPrivateKey: Any) -> Any:
+    """
+    Create a JSON Web Signature (JWS) using the specified header, claims, and private key.
+    """
     # Set expiration time.
     claims["exp"] = int(time.time()) + 600
     claims["iat"] = int(time.time())

@@ -7,20 +7,39 @@ from cryptography.hazmat.primitives import serialization
 
 from tenacity import retry, stop_after_attempt, wait_exponential
 
-from .const import GRANT_TYPE, CLIENT_ASSERTION_TYPE, SCOPE, VALID_DOMAINS
+from .const import GRANT_TYPE, CLIENT_ASSERTION_TYPE, SCOPE, VALID_DOMAINS, DEFAULT_DOMAIN
 from .logger import logger
 from .timing import timing
 from .util import make_jws, get, post, ReadTimeout, HTTPError
 
 
 class IBAuth:
+    """
+    Handle the Interactive Brokers (IBKR) Web API OAuth authentication workflow.
+
+    This class encapsulates the OAuth2 and session lifecycle required to
+    interact with the IBKR Web API. It manages loading the private key,
+    retrieving and refreshing tokens, establishing a brokerage session,
+    and maintaining it via keep-alive requests.
+
+    Args:
+        client_id (str): Application client ID issued by IBKR.
+        client_key_id (str): Identifier for the private key registered with IBKR.
+        credential (str): IBKR credential string used for authentication.
+        private_key_file (str | Path): Path to the RSA private key file (PEM format).
+        domain (str, optional): IBKR API domain (default: `api.ibkr.com`).
+
+    Raises:
+        ValueError: If any required parameter is missing or invalid.
+    """
+
     def __init__(
         self,
         client_id: str,
         client_key_id: str,
         credential: str,
         private_key_file: str | Path,
-        domain: str = "api.ibkr.com",
+        domain: str = DEFAULT_DOMAIN,
     ):
         if not client_id:
             raise ValueError("Required parameter 'client_id' is missing.")
@@ -101,27 +120,19 @@ class IBAuth:
         self.IP = IP
         return IP
 
-    def _compute_client_assertion(self, url: str) -> Any:
+    def _compute_jws(self, claims: dict[str, Any], url: str, exp: int = 0, iat: int = 0) -> Any:
+        """
+        Args:
+            claims (dict[str, any]): The claims to include in the JWS.
+            url (str): The URL for which the JWS is being created.
+            exp (int, optional): The expiration time offset for the JWS. Defaults to 0.
+            iat (int, optional): The issued-at time offset for the JWS. Defaults to 0.
+        """
         now = math.floor(time.time())
         header = {"alg": "RS256", "typ": "JWT", "kid": f"{self.client_key_id}"}
 
-        if url == f"{self.url_oauth2}/api/v1/token":
-            claims = {
-                "iss": f"{self.client_id}",
-                "sub": f"{self.client_id}",
-                "aud": "/token",
-                "exp": now + 20,
-                "iat": now - 10,
-            }
-
-        elif url == f"{self.url_gateway}/api/v1/sso-sessions":
-            claims = {
-                "ip": self.IP,
-                "credential": f"{self.credential}",
-                "iss": f"{self.client_id}",
-                "exp": now + 86400,
-                "iat": now,
-            }
+        claims["exp"] = now + exp
+        claims["iat"] = now + iat
 
         logger.debug(f"Header: {header}.")
         logger.debug(f"Claims: {claims}.")
@@ -130,19 +141,21 @@ class IBAuth:
 
     def get_access_token(self) -> None:
         """
-        Obtain an access token. This is the first step in the authentication
-        flow.
-
-        Returns:
-            str: The access token.
+        Obtain an OAuth 2.0 access token.
         """
         url = f"{self.url_oauth2}/api/v1/token"
 
         headers = {"Content-Type": "application/x-www-form-urlencoded"}
 
+        claims = {
+            "iss": f"{self.client_id}",
+            "sub": f"{self.client_id}",
+            "aud": "/token",
+        }
+
         form_data = {
             "grant_type": GRANT_TYPE,
-            "client_assertion": self._compute_client_assertion(url),
+            "client_assertion": self._compute_jws(claims, url, exp=20, iat=-10),
             "client_assertion_type": CLIENT_ASSERTION_TYPE,
             "scope": SCOPE,
         }
@@ -150,9 +163,13 @@ class IBAuth:
         logger.info("Request access token.")
         response = post(url=url, headers=headers, data=form_data)
 
+        # TODO: Add Pydantic model for response.
         self.access_token = response.json()["access_token"]
 
     def get_bearer_token(self) -> None:
+        """
+        Create a new SSO session.
+        """
         url = f"{self.url_gateway}/api/v1/sso-sessions"
 
         headers = {
@@ -163,9 +180,17 @@ class IBAuth:
         # Initialise IP (it's embedded in the bearer token).
         self._check_ip()
 
-        logger.info("Request bearer token.")
-        response = post(url=url, headers=headers, data=self._compute_client_assertion(url))
+        claims = {
+            "ip": self.IP,
+            "credential": f"{self.credential}",
+            # TODO: Check if iss parameter actually required.
+            "iss": f"{self.client_id}",
+        }
 
+        logger.info("Request bearer token.")
+        response = post(url=url, headers=headers, data=self._compute_jws(claims, url, exp=86400))
+
+        # TODO: Add Pydantic model for response.
         self.bearer_token = response.json()["access_token"]
 
     @retry(stop=stop_after_attempt(5), wait=wait_exponential(multiplier=5))  # type: ignore
@@ -226,7 +251,7 @@ class IBAuth:
                 response.raise_for_status()
             logger.info(f"⏳ Tickle RTT: {duration.duration:.3f} s [status={response.status_code}]")
         except (HTTPError, ReadTimeout):
-            logger.exception("⛔ Error connecting to session.")
+            logger.error("⛔ Error connecting to session.")
             self.get_bearer_token()
             self.ssodh_init()
             raise

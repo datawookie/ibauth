@@ -1,6 +1,7 @@
 import yaml
 from pathlib import Path
 
+from .const import DEFAULT_DOMAIN
 from .logger import logger
 from .auth import IBAuth
 
@@ -30,5 +31,5 @@ def auth_from_yaml(path: str | Path) -> IBAuth:
         client_key_id=config["client_key_id"],
         credential=config["credential"],
         private_key_file=config["private_key_file"],
-        domain=config.get("domain", "api.ibkr.com"),
+        domain=config.get("domain", DEFAULT_DOMAIN),
     )
