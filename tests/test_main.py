@@ -197,7 +197,31 @@ def test_logout_without_token(flow: IBAuth) -> None:
     flow.logout()
 
 
-def test_auth_from_yaml(tmp_path: Path, private_key_file: str) -> None:
+@pytest.mark.no_patch_connect  # type: ignore[misc]
+@patch("ibauth.auth.IBAuth.get_access_token", return_value=None)
+@patch("ibauth.auth.IBAuth.get_bearer_token", return_value=None)
+@patch("ibauth.auth.IBAuth.ssodh_init", return_value=None)
+@patch("ibauth.auth.IBAuth.validate_sso", return_value=None)
+def test_connect(
+    mock_get_access_token: Mock,
+    mock_get_bearer_token: Mock,
+    mock_ssodh_init: Mock,
+    mock_validate_sso: Mock,
+    request: pytest.FixtureRequest,
+) -> None:
+    # Create the flow fixture once all of the patches have been applied.
+    flow = request.getfixturevalue("flow")
+    assert isinstance(flow, IBAuth)
+
+    mock_get_access_token.assert_called_once()
+    mock_get_bearer_token.assert_called_once()
+    mock_ssodh_init.assert_called_once()
+    mock_validate_sso.assert_called_once()
+
+
+@patch("ibauth.auth.IBAuth._connect")
+def test_auth_from_yaml(mock_connect: Mock, tmp_path: Path, private_key_file: str) -> None:
+    mock_connect.return_value = None
     config = {
         "client_id": "cid",
         "client_key_id": "kid",

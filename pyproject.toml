@@ -13,7 +13,7 @@ dependencies = [
     "pyjwt>=2.10.1",
     "pyyaml>=6.0.2",
     "requests>=2.32.3",
-    "ruff>=0.9.9",
+    "ruff>=0.12.11",
     "tenacity>=9.0.0",
 ]
 
@@ -44,6 +44,7 @@ testpaths = ["tests"]
 addopts = ["--timeout=10"]
 markers = [
   "integration: Tests that require a running ibproxy.",
+  "no_patch_connect: Tests that require a _connect() method.",
 ]
 
 [tool.ruff]
