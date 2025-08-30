@@ -1,6 +1,6 @@
 [project]
 name = "ibauth"
-version = "0.0.6"
+version = "0.0.7"
 description = "Interactive Brokers OAuth"
 readme = "README.md"
 requires-python = ">=3.11"
