@@ -80,6 +80,8 @@ class IBAuth:
 
         self.IP = None
 
+        self._connect()
+
     @property
     def url_oauth2(self) -> str:
         return f"https://{self.domain}/oauth2"
@@ -248,12 +250,11 @@ class IBAuth:
             logger.info("🔔 Send tickle.")
             with timing() as duration:
                 response = get(url=url, headers=headers, timeout=10)
-                response.raise_for_status()
             logger.info(f"⏳ Tickle RTT: {duration.duration:.3f} s [status={response.status_code}]")
+            response.raise_for_status()
         except (HTTPError, ReadTimeout):
             logger.error("⛔ Error connecting to session.")
-            self.get_bearer_token()
-            self.ssodh_init()
+            self._connect()
             raise
 
         self.session_id: str = response.json()["session"]
@@ -285,3 +286,12 @@ class IBAuth:
 
         logger.info("Terminate brokerage session.")
         post(url=url, headers=headers)
+
+    def _connect(self) -> None:
+        """
+        Connect to the brokerage API.
+        """
+        self.get_access_token()
+        self.get_bearer_token()
+        self.ssodh_init()
+        self.validate_sso()
