@@ -1,6 +1,5 @@
 import time
 import jwt
-import curlify
 import requests
 from typing import Any
 
@@ -17,7 +16,6 @@ RESP_HEADERS_TO_PRINT = ["Cookie", "Cache-Control", "Content-Type", "Host"]
 
 
 def log_response(response: Response) -> None:
-    logger.debug(f"Request:  {curlify.to_curl(response.request)}")
     logger.debug(f"Response: {response.status_code} {response.text}")
     response.raise_for_status()
 

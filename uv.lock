@@ -251,15 +251,6 @@ wheels = [
 ]
 
 [[package]]
-name = "curlify"
-version = "2.2.1"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "requests" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/fa/2c/9254b2294d0250291560d78e16e5cd764b8e2caa75d4cad1e8ae9d73899d/curlify-2.2.1.tar.gz", hash = "sha256:0d3f02e7235faf952de8ef45ef469845196d30632d5838bcd5aee217726ddd6d", size = 2970, upload-time = "2019-07-21T15:36:35.228Z" }
-
-[[package]]
 name = "distlib"
 version = "0.3.9"
 source = { registry = "https://pypi.org/simple" }
@@ -282,21 +273,19 @@ name = "ibauth"
 version = "0.0.7"
 source = { editable = "." }
 dependencies = [
-    { name = "bump2version" },
     { name = "cryptography" },
-    { name = "curlify" },
     { name = "mypy" },
-    { name = "pre-commit" },
     { name = "pyjwt" },
     { name = "pyyaml" },
     { name = "requests" },
-    { name = "ruff" },
     { name = "tenacity" },
 ]
 
 [package.dev-dependencies]
 dev = [
+    { name = "bump2version" },
     { name = "mypy" },
+    { name = "pre-commit" },
     { name = "ruff" },
 ]
 test = [
@@ -308,22 +297,20 @@ test = [
 
 [package.metadata]
 requires-dist = [
-    { name = "bump2version", specifier = ">=1.0.1" },
     { name = "cryptography", specifier = ">=44.0.2" },
-    { name = "curlify", specifier = ">=2.2.1" },
     { name = "mypy", specifier = ">=1.15.0" },
-    { name = "pre-commit", specifier = ">=4.1.0" },
     { name = "pyjwt", specifier = ">=2.10.1" },
     { name = "pyyaml", specifier = ">=6.0.2" },
     { name = "requests", specifier = ">=2.32.3" },
-    { name = "ruff", specifier = ">=0.12.11" },
     { name = "tenacity", specifier = ">=9.0.0" },
 ]
 
 [package.metadata.requires-dev]
 dev = [
+    { name = "bump2version", specifier = ">=1.0.1" },
     { name = "mypy", specifier = ">=1.16.0" },
-    { name = "ruff", specifier = ">=0.12.9" },
+    { name = "pre-commit", specifier = ">=4.1.0" },
+    { name = "ruff", specifier = ">=0.12.11" },
 ]
 test = [
     { name = "pytest", specifier = ">=8.3.5" },

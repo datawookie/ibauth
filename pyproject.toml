@@ -2,25 +2,29 @@
 name = "ibauth"
 version = "0.0.7"
 description = "Interactive Brokers OAuth"
+authors = [
+  {name = "Andrew Collier"}
+]
+maintainers = [
+  {name = "Andrew Collier"}
+]
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
-    "bump2version>=1.0.1",
     "cryptography>=44.0.2",
-    "curlify>=2.2.1",
     "mypy>=1.15.0",
-    "pre-commit>=4.1.0",
     "pyjwt>=2.10.1",
     "pyyaml>=6.0.2",
     "requests>=2.32.3",
-    "ruff>=0.12.11",
     "tenacity>=9.0.0",
 ]
 
 [dependency-groups]
 dev = [
+    "bump2version>=1.0.1",
+    "pre-commit>=4.1.0",
     "mypy>=1.16.0",
-    "ruff>=0.12.9",
+    "ruff>=0.12.11",
 ]
 test = [
     "pytest>=8.3.5",
