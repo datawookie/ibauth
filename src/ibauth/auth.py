@@ -263,10 +263,10 @@ class IBAuth:
         self.competing = auth_status["competing"]
         self.connected = auth_status["connected"]
 
-        logger.debug(f"Session ID: {self.session_id}")
-        logger.debug(f"- authenticated: {self.authenticated}")
-        logger.debug(f"- competing:     {self.competing}")
-        logger.debug(f"- connected:     {self.connected}")
+        logger.info(f"Session ID: {self.session_id}")
+        logger.info(f"  - authenticated: {self.authenticated}")
+        logger.info(f"  - competing:     {self.competing}")
+        logger.info(f"  - connected:     {self.connected}")
 
         logger.debug(f"Response content: {response.json()}.")
 
