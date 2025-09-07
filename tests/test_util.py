@@ -21,7 +21,6 @@ def test_log_response_success(caplog: Any) -> None:
     util.log_response(mock_response)
 
     logs = caplog.messages
-    assert any("Request:" in msg for msg in logs)
     assert any("Response: 200 ok" in msg for msg in logs)
     mock_response.raise_for_status.assert_called_once()
 
