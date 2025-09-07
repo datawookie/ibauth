@@ -247,10 +247,9 @@ class IBAuth:
 
         try:
             # Ping the API and record RTT (round trip time).
-            logger.info("🔔 Send tickle.")
             with timing() as duration:
                 response = get(url=url, headers=headers, timeout=10)
-            logger.info(f"⏳ Tickle RTT: {duration.duration:.3f} s [status={response.status_code}]")
+            logger.info(f"🔔 Tickle (RTT: {duration.duration:.3f} s) [status={response.status_code}]")
             response.raise_for_status()
         except (HTTPError, ReadTimeout):
             logger.error("⛔ Error connecting to session.")
@@ -263,10 +262,13 @@ class IBAuth:
         self.competing = auth_status["competing"]
         self.connected = auth_status["connected"]
 
-        logger.info(f"Session ID: {self.session_id}")
-        logger.info(f"  - authenticated: {self.authenticated}")
-        logger.info(f"  - competing:     {self.competing}")
-        logger.info(f"  - connected:     {self.connected}")
+        def _bool_to_symbol(value: bool | None) -> str:
+            return "✅" if value else "⚠️" if value is False else "🚨"
+
+        logger.info(f"- Session ID: {self.session_id}")
+        logger.info(f"  * authenticated: {self.authenticated!s:^5} {_bool_to_symbol(self.authenticated)}")
+        logger.info(f"  * competing:     {self.competing!s:^5} {_bool_to_symbol(not self.competing)}")
+        logger.info(f"  * connected:     {self.connected!s:^5} {_bool_to_symbol(self.connected)}")
 
         logger.debug(f"Response content: {response.json()}.")
 
