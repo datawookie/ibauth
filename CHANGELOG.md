@@ -1,5 +1,9 @@
 # Change Log
 
+## [0.0.8] - 2025-09-07
+
+- Improve logging in `tickle()`.
+
 ## [0.0.7] - 2025-08-30
 
 - Add `_connect()` method.
