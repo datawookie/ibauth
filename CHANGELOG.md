@@ -1,5 +1,9 @@
 # Change Log
 
+## [0.0.9] - 2025-09-09
+
+- Reconnect from `tickle()` if not authenticated.
+
 ## [0.0.8] - 2025-09-07
 
 - Improve logging in `tickle()`.
