@@ -285,3 +285,8 @@ environment.
 ```
 make deploy
 ```
+
+## API Error Codes
+
+- `500` `Please query /accounts first`
+- `401` `not authenticated`

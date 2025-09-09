@@ -5,8 +5,6 @@ from pathlib import Path
 
 from cryptography.hazmat.primitives import serialization
 
-from tenacity import retry, stop_after_attempt, wait_exponential
-
 from .const import GRANT_TYPE, CLIENT_ASSERTION_TYPE, SCOPE, VALID_DOMAINS, DEFAULT_DOMAIN
 from .logger import logger
 from .timing import timing
@@ -195,7 +193,6 @@ class IBAuth:
         # TODO: Add Pydantic model for response.
         self.bearer_token = response.json()["access_token"]
 
-    @retry(stop=stop_after_attempt(5), wait=wait_exponential(multiplier=5))  # type: ignore
     def ssodh_init(self) -> None:
         """
         Initialise a brokerage session.
@@ -230,7 +227,6 @@ class IBAuth:
 
         logger.debug(f"Response content: {response.json()}.")
 
-    @retry(stop=stop_after_attempt(5), wait=wait_exponential(multiplier=5))  # type: ignore
     def tickle(self) -> str:
         """
         Keeps session alive.
@@ -271,6 +267,23 @@ class IBAuth:
         logger.info(f"  * connected:     {self.connected!s:^5} {_bool_to_symbol(self.connected)}")
 
         logger.debug(f"Response content: {response.json()}.")
+
+        # Check if still authenticated.
+        if not self.authenticated:
+            #
+            # It's not clear why one would be disconnected if you're keeping the
+            # connection open with regular requests but it does seem to happen
+            # from time to time.
+            #
+            # This is what I have observed:
+            #
+            # 1. You start getting 500 ("Please query /accounts first") errors.
+            # 2. On next tickle you find that you are neither connected nor
+            #    authenticated.
+            # 3. After the tickle you might start getting 401 ("not authenticated") errors.
+            #
+            logger.error("⛔ Not authenticated.")
+            self._connect()
 
         return self.session_id
 

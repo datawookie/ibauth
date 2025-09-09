@@ -5,7 +5,7 @@ dist/
 wheels/
 *.egg-info
 .venv
-privatekey.pem
+*.pem
 config.yaml
 *.code-workspace
 .coverage

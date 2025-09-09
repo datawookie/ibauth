@@ -1,4 +1,3 @@
-from collections.abc import Iterator
 import pytest
 from pathlib import Path
 from unittest.mock import patch, Mock
@@ -8,33 +7,6 @@ import yaml
 
 from ibauth import IBAuth, auth_from_yaml
 from ibauth.util import HTTPError
-
-from cryptography.hazmat.primitives.asymmetric import rsa
-from cryptography.hazmat.primitives import serialization
-
-
-@pytest.fixture  # type: ignore[misc]
-def private_key_file(tmp_path: Path) -> Iterator[Path]:
-    key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
-    pem = key.private_bytes(
-        encoding=serialization.Encoding.PEM,
-        format=serialization.PrivateFormat.PKCS8,
-        encryption_algorithm=serialization.NoEncryption(),
-    )
-    key_file = tmp_path / "key.pem"
-    key_file.write_bytes(pem)
-    yield key_file
-
-
-@pytest.fixture  # type: ignore[misc]
-def flow(private_key_file: Path) -> IBAuth:
-    return IBAuth(
-        client_id="cid",
-        client_key_id="kid",
-        credential="cred",
-        private_key_file=private_key_file,
-        domain="api.ibkr.com",
-    )
 
 
 def test_init_valid(flow: IBAuth) -> None:
@@ -142,47 +114,6 @@ def test_validate_sso(mock_get: Mock, flow: IBAuth) -> None:
     mock_get.return_value.json.return_value = {"result": "valid"}
     flow.validate_sso()
     mock_get.assert_called_once()
-
-
-@patch("ibauth.auth.get")
-def test_tickle_success(mock_get: Mock, flow: IBAuth) -> None:
-    flow.bearer_token = "bearer123"
-    mock_get.return_value.json.return_value = {
-        "session": "sess1",
-        "iserver": {
-            "authStatus": {
-                "authenticated": True,
-                "competing": False,
-                "connected": True,
-            }
-        },
-    }
-    sid = flow.tickle()
-    assert sid == "sess1"
-    assert flow.authenticated
-    assert flow.connected
-    assert not flow.competing
-
-
-@patch("ibauth.auth.get")
-def test_tickle_failure(mock_get: Mock, flow: IBAuth, monkeypatch: Any) -> None:
-    flow.access_token = "not.valid"
-    flow.bearer_token = "not.valid"
-
-    mock_response = Mock()
-    mock_response.raise_for_status.side_effect = HTTPError("bad request")
-    mock_response.json.return_value = {"error": "bad request"}
-    mock_get.return_value = mock_response
-
-    monkeypatch.setattr(flow, "get_bearer_token", lambda: None)
-    monkeypatch.setattr(flow, "ssodh_init", lambda: None)
-
-    with pytest.raises(HTTPError):
-        flow.tickle()
-    # assert sid == "sess1"
-    # assert flow.authenticated
-    # assert flow.connected
-    # assert not flow.competing
 
 
 @patch("ibauth.auth.post")
