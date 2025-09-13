@@ -6,7 +6,7 @@ from typing import Any
 import yaml
 
 from ibauth import IBAuth, auth_from_yaml
-from ibauth.util import HTTPError
+from ibauth.util import HTTPError, AuthenticationError
 
 
 def test_init_valid(flow: IBAuth) -> None:
@@ -102,16 +102,16 @@ def test_ssodh_init_success(mock_post: Mock, flow: IBAuth) -> None:
 @patch("ibauth.auth.post")
 def test_ssodh_init_failure(mock_post: Mock, flow: IBAuth, monkeypatch: Any) -> None:
     flow.bearer_token = "not.valid"
-    mock_post.return_value.raise_for_status.side_effect = HTTPError("bad request")
+    mock_post.side_effect = HTTPError("bad request")
 
     with pytest.raises(HTTPError):
         flow.ssodh_init()
 
 
 @patch("ibauth.auth.get")
-def test_validate_sso(mock_get: Mock, flow: IBAuth) -> None:
+def test_validate_sso(mock_get: Mock, flow: IBAuth, session_details_payload: dict[str, Any]) -> None:
     flow.bearer_token = "bearer123"
-    mock_get.return_value.json.return_value = {"result": "valid"}
+    mock_get.return_value.json.return_value = session_details_payload
     flow.validate_sso()
     mock_get.assert_called_once()
 
@@ -165,3 +165,22 @@ def test_auth_from_yaml(mock_connect: Mock, tmp_path: Path, private_key_file: st
     flow = auth_from_yaml(file)
     assert isinstance(flow, IBAuth)
     assert flow.client_id == "cid"
+
+
+@pytest.mark.no_patch_connect  # type: ignore[misc]
+@patch("ibauth.auth.post")
+def test_auth_from_yaml_failure(mock_post: Mock, tmp_path: Path, private_key_file: str) -> None:
+    mock_post.side_effect = HTTPError("bad request")
+
+    config = {
+        "client_id": "cid",
+        "client_key_id": "kid",
+        "credential": "cred",
+        "private_key_file": str(private_key_file),
+        "domain": "api.ibkr.com",
+    }
+    file = tmp_path / "conf.yaml"
+    file.write_text(yaml.dump(config))
+
+    with pytest.raises(AuthenticationError):
+        auth_from_yaml(file)

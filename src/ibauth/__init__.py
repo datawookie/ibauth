@@ -39,7 +39,7 @@ def auth_from_yaml(path: str | Path) -> IBAuth:
         raise AuthenticationError("Authentication failed")
 
 
-def main() -> None:
+def main() -> None:  # pragma: no cover
     import argparse
     import sys
     import logging

@@ -6,6 +6,7 @@ import pytest
 import tenacity
 
 from ibauth import IBAuth
+from ibauth.models import SessionDetailsModel
 import ibauth.timing
 
 from cryptography.hazmat.primitives.asymmetric import rsa
@@ -75,3 +76,43 @@ def flow(private_key_file: Path) -> IBAuth:
         private_key_file=private_key_file,
         domain="api.ibkr.com",
     )
+
+
+@pytest.fixture  # type: ignore[misc]
+def session_details_payload() -> dict[str, Any]:
+    """Return a minimal valid payload for SessionDetailsModel."""
+    payload = SessionDetailsModel(
+        PAPER_USER_NAME="testuser",
+        IS_PENDING_APPLICANT=False,
+        SF_ENABLED=False,
+        HARDWARE_INFO="info",
+        UNIQUE_LOGIN_ID="123",
+        AUTH_TIME=1234567890,
+        SF_CONFIG="",
+        USER_NAME="testuser",
+        CREDENTIAL_TYPE=1,
+        IS_FREE_TRIAL=False,
+        LOGIN_TYPE=2,
+        LANDING_APP="PORTAL",
+        COUNTERPARTY="counter",
+        CREDENTIAL="cred",
+        RESULT=True,
+        IP="127.0.0.1",
+        USER_ID=1,
+        EXPIRES=1234567999,
+        TOKEN="Bearer:token",
+        took=50,
+        IS_MASTER=False,
+        features={
+            "env": "PROD",
+            "wlms": True,
+            "realtime": True,
+            "bond": True,
+            "optionChains": True,
+            "calendar": True,
+            "newMf": True,
+        },
+        region="EU",
+    ).model_dump()
+
+    return payload

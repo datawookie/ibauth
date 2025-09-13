@@ -11,6 +11,7 @@ def test_log_response_success(caplog: Any) -> None:
     mock_response = Mock(spec=Response)
     mock_response.status_code = 200
     mock_response.text = "ok"
+    mock_response.headers = {"Content-Type": "text/plain"}
 
     req = Request("GET", "https://example.com", headers={"X-Test": "1"}).prepare()
     mock_response.request = req
@@ -29,6 +30,7 @@ def test_log_response_http_error() -> None:
     mock_response = Mock(spec=Response)
     mock_response.status_code = 400
     mock_response.text = "bad"
+    mock_response.headers = {"Content-Type": "text/plain"}
     mock_response.request = Mock()
 
     req = Request("GET", "https://example.com", headers={"X-Test": "1"}).prepare()
@@ -45,6 +47,7 @@ def test_get_calls_requests_get(mock_get: Mock) -> None:
     mock_response = Mock(spec=Response)
     mock_response.status_code = 200
     mock_response.text = "ok"
+    mock_response.headers = {"Content-Type": "text/plain"}
     mock_response.request = Mock()
 
     req = Request("GET", "https://example.com", headers={"X-Test": "1"}).prepare()
@@ -64,6 +67,7 @@ def test_post_calls_requests_post(mock_post: Mock) -> None:
     mock_response = Mock(spec=Response)
     mock_response.status_code = 200
     mock_response.text = "ok"
+    mock_response.headers = {"Content-Type": "text/plain"}
     mock_response.request = Mock()
 
     req = Request("GET", "https://example.com", headers={"X-Test": "1"}).prepare()
@@ -104,3 +108,21 @@ def test_make_jws_sets_claims_and_calls_jwt(mock_encode: Mock) -> None:
     kwargs = mock_encode.call_args[1]
     assert kwargs["algorithm"] == "RS256"
     assert kwargs["headers"] == header
+
+
+def test_authentication_error_with_code() -> None:
+    err = util.AuthenticationError("Invalid credentials", code=401)
+
+    # Exception should carry the message
+    assert str(err) == "Invalid credentials"
+    # And the custom code
+    assert err.code == 401
+    # It should also be an Exception subclass
+    assert isinstance(err, Exception)
+
+
+def test_authentication_error_without_code() -> None:
+    err = util.AuthenticationError("Something went wrong")
+
+    assert str(err) == "Something went wrong"
+    assert err.code is None
