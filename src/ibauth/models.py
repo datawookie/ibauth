@@ -12,7 +12,7 @@ class SessionFeaturesModel(BaseModel):
 
 
 class SessionDetailsModel(BaseModel):
-    PAPER_USER_NAME: str
+    PAPER_USER_NAME: str | None = None
     IS_PENDING_APPLICANT: bool
     SF_ENABLED: bool
     HARDWARE_INFO: str
