@@ -13,6 +13,7 @@ requires-python = ">=3.11"
 dependencies = [
     "cryptography>=44.0.2",
     "mypy>=1.15.0",
+    "pydantic>=2.11.8",
     "pyjwt>=2.10.1",
     "pyyaml>=6.0.2",
     "requests>=2.32.3",
@@ -38,6 +39,7 @@ requires = ["setuptools"]
 
 [tool.mypy]
 ignore_missing_imports = false
+plugins = ["pydantic.mypy"]
 
 [[tool.mypy.overrides]]
 module = ["requests", "requests.exceptions", "curlify", "yaml"]

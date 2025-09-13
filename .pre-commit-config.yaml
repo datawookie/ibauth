@@ -28,3 +28,4 @@ repos:
     hooks:
     -   id: mypy
         args: [--strict, --ignore-missing-imports]
+        additional_dependencies: ['pydantic>=2.11.7']

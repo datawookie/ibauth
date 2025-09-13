@@ -9,6 +9,7 @@ from .const import GRANT_TYPE, CLIENT_ASSERTION_TYPE, SCOPE, VALID_DOMAINS, DEFA
 from .logger import logger
 from .timing import timing
 from .util import make_jws, get, post, ReadTimeout, HTTPError
+from .models import SessionDetailsModel
 
 
 class IBAuth:
@@ -224,8 +225,11 @@ class IBAuth:
 
         logger.info("Validate brokerage session.")
         response = get(url=url, headers=headers)  # noqa: F841
-        # TODO: Add Pydantic model for response.
-        # TODO: Extract information from response and log.
+
+        # Extract session details.
+        session = SessionDetailsModel(**response.json())
+        logger.debug("Session details:")
+        logger.debug(f"  - User: {session.USER_NAME}")
 
     def tickle(self) -> str:
         """
