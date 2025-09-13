@@ -165,12 +165,14 @@ Again, as the name implies, this is a _public_ key and can be shared freely.
 You'll need to upload this public key onto the IBKR platform.
 
 1. Login to www.ibkr.com.
-2. Click the “Bell” Icon.
-3. Messages
-4. Compose a New Ticket for API
-5. Paste the contents of your RSA public key.
-6. Notify IBKR of the ticket.
-7. Wait patiently.
+2. Click the 🔔 (bell) icon.
+3. Select the _Messages_ option.
+4. Compose a New Ticket.
+5. Select _API_ as topic.
+6. Select _REST/Web API_ as sub-topic.
+7. Paste the contents of your RSA public key.
+8. Notify IBKR of the ticket.
+9. Wait patiently.
 
 ---
 
@@ -286,7 +288,13 @@ environment.
 make deploy
 ```
 
-## API Error Codes
+## Testing
 
-- `500` `Please query /accounts first`
-- `401` `not authenticated`
+You can test the authentication workflow:
+
+```bash
+# Use config.yaml in current directory.
+uv run ibauth
+# Use config.yaml in home directory and include debugging output.
+uv run ibauth --config ~/config.yaml --debug
+```

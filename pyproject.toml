@@ -24,7 +24,7 @@ dev = [
     "bump2version>=1.0.1",
     "pre-commit>=4.1.0",
     "mypy>=1.16.0",
-    "ruff>=0.12.11",
+    "ruff>=0.13.0",
 ]
 test = [
     "pytest>=8.3.5",
@@ -65,3 +65,6 @@ include = ["src/*"]
 show_missing = true
 skip_covered = false
 precision = 1
+
+[project.scripts]
+ibauth = "ibauth:main"

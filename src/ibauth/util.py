@@ -1,3 +1,4 @@
+from json import dumps
 import time
 import jwt
 import requests
@@ -16,7 +17,12 @@ RESP_HEADERS_TO_PRINT = ["Cookie", "Cache-Control", "Content-Type", "Host"]
 
 
 def log_response(response: Response) -> None:
-    logger.debug(f"Response: {response.status_code} {response.text}")
+    content_type = response.headers.get("Content-Type", "")
+    if "application/json" in content_type:
+        content = dumps(response.json(), indent=2)
+    else:
+        content = response.text
+    logger.debug(f"Response: {response.status_code} {content}")
     response.raise_for_status()
 
 
@@ -35,6 +41,9 @@ def post(
     timeout: float | None = None,
 ) -> requests.Response:
     logger.debug(f"🔄 POST {url}")
+    logger.debug(f"  - headers: {headers}")
+    logger.debug(f"  - data: {dumps(data, indent=2) if data else None}")
+    logger.debug(f"  - JSON: {dumps(json, indent=2) if json else None}")
     response = requests.post(url, data=data, json=json, headers=headers, timeout=timeout)
     log_response(response)
     return response

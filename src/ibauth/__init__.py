@@ -4,6 +4,7 @@ from pathlib import Path
 from .const import DEFAULT_DOMAIN
 from .logger import logger
 from .auth import IBAuth
+from .util import HTTPError
 
 __all__ = [
     "IBAuth",
@@ -33,3 +34,24 @@ def auth_from_yaml(path: str | Path) -> IBAuth:
         private_key_file=config["private_key_file"],
         domain=config.get("domain", DEFAULT_DOMAIN),
     )
+
+
+def main() -> None:
+    import argparse
+    import sys
+    import logging
+
+    parser = argparse.ArgumentParser(description="IBAuth Command Line Interface")
+    parser.add_argument("--debug", action="store_true", help="Enable debug logging.")
+    parser.add_argument("--config", type=str, default="config.yaml", help="Path to the YAML configuration file.")
+    args = parser.parse_args()
+
+    logging.basicConfig(
+        level=logging.DEBUG if args.debug else logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s"
+    )
+
+    try:
+        auth_from_yaml(args.config)
+    except HTTPError:
+        logger.error("🚨 Failed to create IBAuth instance.")
+        sys.exit(1)

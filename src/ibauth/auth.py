@@ -134,8 +134,9 @@ class IBAuth:
         claims["exp"] = now + exp
         claims["iat"] = now + iat
 
-        logger.debug(f"Header: {header}.")
-        logger.debug(f"Claims: {claims}.")
+        logger.debug(f"Create JWS for {url}.")
+        logger.debug(f"  - header: {header}.")
+        logger.debug(f"  - claims: {claims}.")
 
         return make_jws(header, claims, self.private_key)
 
@@ -207,9 +208,8 @@ class IBAuth:
         logger.info("Initiate a brokerage session.")
         try:
             response = post(url=url, headers=headers, json={"publish": True, "compete": True})
-            response.raise_for_status()
-        except HTTPError:
-            logger.error("⛔ Error initiating a brokerage session.")
+        except HTTPError as error:
+            logger.error(f"⛔ Error initiating a brokerage session ({error}).")
             raise
 
         logger.debug(f"Response content: {response.json()}.")
@@ -223,9 +223,9 @@ class IBAuth:
         }
 
         logger.info("Validate brokerage session.")
-        response = get(url=url, headers=headers)
-
-        logger.debug(f"Response content: {response.json()}.")
+        response = get(url=url, headers=headers)  # noqa: F841
+        # TODO: Add Pydantic model for response.
+        # TODO: Extract information from response and log.
 
     def tickle(self) -> str:
         """
@@ -246,7 +246,6 @@ class IBAuth:
             with timing() as duration:
                 response = get(url=url, headers=headers, timeout=10)
             logger.info(f"🔔 Tickle (RTT: {duration.duration:.3f} s) [status={response.status_code}]")
-            response.raise_for_status()
         except (HTTPError, ReadTimeout):
             logger.error("⛔ Error connecting to session.")
             self._connect()
@@ -308,5 +307,5 @@ class IBAuth:
         """
         self.get_access_token()
         self.get_bearer_token()
-        self.ssodh_init()
         self.validate_sso()
+        self.ssodh_init()
