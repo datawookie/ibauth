@@ -1,5 +1,10 @@
 # Change Log
 
+## [0.0.10] - 2025-09-13
+
+- Improve exception handling.
+- Add standalone `ibauth` script (mostly for testing).
+
 ## [0.0.9] - 2025-09-09
 
 - Reconnect from `tickle()` if not authenticated.
