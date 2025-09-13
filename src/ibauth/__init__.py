@@ -4,7 +4,7 @@ from pathlib import Path
 from .const import DEFAULT_DOMAIN
 from .logger import logger
 from .auth import IBAuth
-from .util import HTTPError
+from .util import AuthenticationError, HTTPError
 
 __all__ = [
     "IBAuth",
@@ -27,13 +27,16 @@ def auth_from_yaml(path: str | Path) -> IBAuth:
     with open(path_absolute, "r") as f:
         config = yaml.safe_load(f)
 
-    return IBAuth(
-        client_id=config["client_id"],
-        client_key_id=config["client_key_id"],
-        credential=config["credential"],
-        private_key_file=config["private_key_file"],
-        domain=config.get("domain", DEFAULT_DOMAIN),
-    )
+    try:
+        return IBAuth(
+            client_id=config["client_id"],
+            client_key_id=config["client_key_id"],
+            credential=config["credential"],
+            private_key_file=config["private_key_file"],
+            domain=config.get("domain", DEFAULT_DOMAIN),
+        )
+    except HTTPError:
+        raise AuthenticationError("Authentication failed")
 
 
 def main() -> None:
@@ -52,6 +55,6 @@ def main() -> None:
 
     try:
         auth_from_yaml(args.config)
-    except HTTPError:
+    except AuthenticationError:
         logger.error("🚨 Failed to create IBAuth instance.")
         sys.exit(1)

@@ -16,6 +16,12 @@ from .const import *
 RESP_HEADERS_TO_PRINT = ["Cookie", "Cache-Control", "Content-Type", "Host"]
 
 
+class AuthenticationError(Exception):
+    def __init__(self, message: str, *, code: int | None = None) -> None:
+        super().__init__(message)
+        self.code = code
+
+
 def log_response(response: Response) -> None:
     content_type = response.headers.get("Content-Type", "")
     if "application/json" in content_type:
