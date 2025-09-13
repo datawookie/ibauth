@@ -1,5 +1,9 @@
 # Change Log
 
+## [0.0.11] - 2025-09-13
+
+- Make `PAPER_USER_NAME` field in session model optional.
+
 ## [0.0.10] - 2025-09-13
 
 - Improve exception handling.
