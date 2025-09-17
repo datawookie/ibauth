@@ -39,6 +39,7 @@ class IBAuth:
         credential: str,
         private_key_file: str | Path,
         domain: str = DEFAULT_DOMAIN,
+        timeout: float = 10.0,
     ):
         if not client_id:
             raise ValueError("Required parameter 'client_id' is missing.")
@@ -60,6 +61,7 @@ class IBAuth:
         self.client_id = client_id
         self.client_key_id = client_key_id
         self.credential = credential
+        self.timeout = timeout
 
         logger.info(f"Load private key from {private_key_file}.")
         with open(private_key_file, "r") as file:
@@ -112,7 +114,7 @@ class IBAuth:
         Get public IP address.
         """
         logger.debug("Check public IP.")
-        IP = get("https://api.ipify.org", timeout=10).content.decode("utf8")
+        IP = get("https://api.ipify.org", timeout=self.timeout).content.decode("utf8")
 
         logger.info(f"Public IP: {IP}.")
         if self.IP and self.IP != IP:
@@ -198,6 +200,11 @@ class IBAuth:
     def ssodh_init(self) -> None:
         """
         Initialise a brokerage session.
+
+        There is apparently a "known issue", where new paper trading accounts
+        can get a 500 error on this endpoint. According to IBKR support they
+        'have seen this issue typically resolve itself out after a week or 2',
+        which seems a rather organic and unreliable way to handle it.
         """
         url = f"{self.url_client_portal}/v1/api/iserver/auth/ssodh/init"
 
@@ -248,11 +255,10 @@ class IBAuth:
         try:
             # Ping the API and record RTT (round trip time).
             with timing() as duration:
-                response = get(url=url, headers=headers, timeout=10)
+                response = get(url=url, headers=headers, timeout=self.timeout)
             logger.info(f"🔔 Tickle (RTT: {duration.duration:.3f} s) [status={response.status_code}]")
-        except (HTTPError, ReadTimeout):
-            logger.error("⛔ Error connecting to session.")
-            self._connect()
+        except (HTTPError, ReadTimeout) as error:
+            logger.error(f"⛔ Error connecting to session ({error}).")
             raise
 
         self.session_id: str = response.json()["session"]
