@@ -1,5 +1,11 @@
 # Change Log
 
+## [0.0.12] - 2025-09-17
+
+- Handle logout when not authenticated.
+- Don't try to reconnect after failed tickle.
+- Add MIT license.
+
 ## [0.0.11] - 2025-09-13
 
 - Make `PAPER_USER_NAME` field in session model optional.
