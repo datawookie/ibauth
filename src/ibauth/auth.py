@@ -309,7 +309,16 @@ class IBAuth:
         }
 
         logger.info("Terminate brokerage session.")
-        post(url=url, headers=headers)
+        try:
+            post(url=url, headers=headers)
+        except HTTPError as error:
+            status_code = error.response.status_code
+            if status_code == 401:
+                # We are no longer authenticated, so can't terminate the session.
+                logger.warning("🚨 Can't terminate brokerage session (not authenticated).")
+            else:
+                logger.error("⛔ Error terminating brokerage session.")
+                raise
 
     def _connect(self) -> None:
         """

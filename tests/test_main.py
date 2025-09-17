@@ -128,6 +128,19 @@ def test_logout_without_token(flow: IBAuth) -> None:
     flow.logout()
 
 
+@patch("ibauth.auth.post")
+def test_logout_not_authenticated(mock_post: Mock, flow: IBAuth, caplog: Any) -> None:
+    response = Mock()
+    response.status_code = 401
+    mock_post.side_effect = HTTPError("Unauthorised", response=response)
+
+    flow.bearer_token = "bearer123"
+    with caplog.at_level("WARNING"):
+        flow.logout()
+
+    assert any("Can't terminate brokerage session (not authenticated)." in msg for msg in caplog.messages)
+
+
 @pytest.mark.no_patch_connect  # type: ignore[misc]
 @patch("ibauth.auth.IBAuth.get_access_token", return_value=None)
 @patch("ibauth.auth.IBAuth.get_bearer_token", return_value=None)
