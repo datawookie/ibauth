@@ -1,15 +1,14 @@
 from json import dumps
 import time
 import jwt
-import requests
+import httpx
 from typing import Any
 
-from requests import Response
-from requests.exceptions import HTTPError, ReadTimeout  # noqa
+from httpx import HTTPStatusError, ReadTimeout  # noqa
 
 from .logger import logger
 
-__all__ = ["ReadTimeout", "HTTPError"]
+__all__ = ["ReadTimeout", "HTTPStatusError"]
 
 from .const import *
 
@@ -22,7 +21,7 @@ class AuthenticationError(Exception):
         self.code = code
 
 
-def log_response(response: Response) -> None:
+def log_response(response: httpx.Response) -> None:
     content_type = response.headers.get("Content-Type", "")
     if "application/json" in content_type:
         content = dumps(response.json(), indent=2)
@@ -32,27 +31,29 @@ def log_response(response: Response) -> None:
     response.raise_for_status()
 
 
-def get(url: str, headers: dict[str, str] | None = None, timeout: float | None = None) -> requests.Response:
+async def get(url: str, headers: dict[str, str] | None = None, timeout: float | None = None) -> httpx.Response:
     logger.debug(f"🔄 GET {url}")
-    response = requests.get(url, headers=headers, timeout=timeout)
-    log_response(response)
-    return response
+    async with httpx.AsyncClient(timeout=timeout) as client:
+        response = await client.get(url, headers=headers)
+        log_response(response)
+        return response
 
 
-def post(
+async def post(
     url: str,
     data: dict[str, Any] | None = None,
     json: dict[str, Any] | None = None,
     headers: dict[str, str] | None = None,
     timeout: float | None = None,
-) -> requests.Response:
+) -> httpx.Response:
     logger.debug(f"🔄 POST {url}")
     logger.debug(f"  - headers: {headers}")
     logger.debug(f"  - data: {dumps(data, indent=2) if data else None}")
     logger.debug(f"  - JSON: {dumps(json, indent=2) if json else None}")
-    response = requests.post(url, data=data, json=json, headers=headers, timeout=timeout)
-    log_response(response)
-    return response
+    async with httpx.AsyncClient(timeout=timeout) as client:
+        response = await client.post(url, data=data, json=json, headers=headers)
+        log_response(response)
+        return response
 
 
 def make_jws(header: dict[str, Any], claims: dict[str, Any], clientPrivateKey: Any) -> Any:

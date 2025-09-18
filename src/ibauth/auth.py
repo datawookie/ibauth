@@ -7,8 +7,8 @@ from cryptography.hazmat.primitives import serialization
 
 from .const import GRANT_TYPE, CLIENT_ASSERTION_TYPE, SCOPE, VALID_DOMAINS, DEFAULT_DOMAIN
 from .logger import logger
-from .timing import timing
-from .util import make_jws, get, post, ReadTimeout, HTTPError
+from .timing import AsyncTimer
+from .util import make_jws, get, post, ReadTimeout, HTTPStatusError
 from .models import SessionDetailsModel
 
 
@@ -63,7 +63,7 @@ class IBAuth:
         self.credential = credential
         self.timeout = timeout
 
-        logger.info(f"Load private key from {private_key_file}.")
+        logger.debug(f"Load private key from {private_key_file}.")
         with open(private_key_file, "r") as file:
             self.private_key = serialization.load_pem_private_key(
                 file.read().encode(),
@@ -80,8 +80,6 @@ class IBAuth:
         self.competing = None
 
         self.IP = None
-
-        self._connect()
 
     @property
     def url_oauth2(self) -> str:
@@ -109,12 +107,12 @@ class IBAuth:
         logger.info(f"Domain: {value}")
         self._domain = value
 
-    def _check_ip(self) -> Any:
+    async def _check_ip(self) -> Any:
         """
         Get public IP address.
         """
         logger.debug("Check public IP.")
-        IP = get("https://api.ipify.org", timeout=self.timeout).content.decode("utf8")
+        IP = (await get("https://api.ipify.org", timeout=self.timeout)).content.decode("utf8")
 
         logger.info(f"Public IP: {IP}.")
         if self.IP and self.IP != IP:
@@ -143,7 +141,7 @@ class IBAuth:
 
         return make_jws(header, claims, self.private_key)
 
-    def get_access_token(self) -> None:
+    async def get_access_token(self) -> None:
         """
         Obtain an OAuth 2.0 access token.
         """
@@ -165,12 +163,12 @@ class IBAuth:
         }
 
         logger.info("Request access token.")
-        response = post(url=url, headers=headers, data=form_data)
+        response = await post(url=url, headers=headers, data=form_data)
 
         # TODO: Add Pydantic model for response.
         self.access_token = response.json()["access_token"]
 
-    def get_bearer_token(self) -> None:
+    async def get_bearer_token(self) -> None:
         """
         Create a new SSO session.
         """
@@ -182,7 +180,7 @@ class IBAuth:
         }
 
         # Initialise IP (it's embedded in the bearer token).
-        self._check_ip()
+        await self._check_ip()
 
         claims = {
             "ip": self.IP,
@@ -192,12 +190,13 @@ class IBAuth:
         }
 
         logger.info("Request bearer token.")
-        response = post(url=url, headers=headers, data=self._compute_jws(claims, url, exp=86400))
+        response = await post(url=url, headers=headers, data=self._compute_jws(claims, url, exp=86400))
+        logger.info("🟢 Brokerage session initiated.")
 
         # TODO: Add Pydantic model for response.
         self.bearer_token = response.json()["access_token"]
 
-    def ssodh_init(self) -> None:
+    async def ssodh_init(self) -> None:
         """
         Initialise a brokerage session.
 
@@ -215,14 +214,14 @@ class IBAuth:
 
         logger.info("Initiate a brokerage session.")
         try:
-            response = post(url=url, headers=headers, json={"publish": True, "compete": True})
-        except HTTPError as error:
+            response = await post(url=url, headers=headers, json={"publish": True, "compete": True})
+        except HTTPStatusError as error:
             logger.error(f"⛔ Error initiating a brokerage session ({error}).")
             raise
 
         logger.debug(f"Response content: {response.json()}.")
 
-    def validate_sso(self) -> None:
+    async def validate_sso(self) -> None:
         url = f"{self.url_client_portal}/v1/api/sso/validate"
 
         headers = {
@@ -231,14 +230,14 @@ class IBAuth:
         }
 
         logger.info("Validate brokerage session.")
-        response = get(url=url, headers=headers)  # noqa: F841
+        response = await get(url=url, headers=headers)  # noqa: F841
 
         # Extract session details.
         session = SessionDetailsModel(**response.json())
         logger.debug("Session details:")
         logger.debug(f"  - User: {session.USER_NAME}")
 
-    def tickle(self) -> str:
+    async def tickle(self) -> str:
         """
         Keeps session alive.
 
@@ -254,10 +253,10 @@ class IBAuth:
 
         try:
             # Ping the API and record RTT (round trip time).
-            with timing() as duration:
-                response = get(url=url, headers=headers, timeout=self.timeout)
+            async with AsyncTimer() as duration:
+                response = await get(url=url, headers=headers, timeout=self.timeout)
             logger.info(f"🔔 Tickle (RTT: {duration.duration:.3f} s) [status={response.status_code}]")
-        except (HTTPError, ReadTimeout) as error:
+        except (HTTPStatusError, ReadTimeout) as error:
             logger.error(f"⛔ Error connecting to session ({error}).")
             raise
 
@@ -292,11 +291,11 @@ class IBAuth:
             # 3. After the tickle you might start getting 401 ("not authenticated") errors.
             #
             logger.error("⛔ Not authenticated.")
-            self._connect()
+            await self.connect()
 
         return self.session_id
 
-    def logout(self) -> None:
+    async def logout(self) -> None:
         url = f"{self.url_client_portal}/v1/api/logout"
 
         if self.bearer_token is None:
@@ -308,10 +307,9 @@ class IBAuth:
             "User-Agent": "python/3.11",
         }
 
-        logger.info("Terminate brokerage session.")
         try:
-            post(url=url, headers=headers)
-        except HTTPError as error:
+            await post(url=url, headers=headers)
+        except HTTPStatusError as error:
             status_code = error.response.status_code
             if status_code == 401:
                 # We are no longer authenticated, so can't terminate the session.
@@ -319,12 +317,13 @@ class IBAuth:
             else:
                 logger.error("⛔ Error terminating brokerage session.")
                 raise
+        logger.info("🔴 Brokerage session terminated.")
 
-    def _connect(self) -> None:
+    async def connect(self) -> None:
         """
         Connect to the brokerage API.
         """
-        self.get_access_token()
-        self.get_bearer_token()
-        self.validate_sso()
-        self.ssodh_init()
+        await self.get_access_token()
+        await self.get_bearer_token()
+        await self.validate_sso()
+        await self.ssodh_init()

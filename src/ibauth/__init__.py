@@ -1,10 +1,11 @@
+import asyncio
 import yaml
 from pathlib import Path
 
 from .const import DEFAULT_DOMAIN
 from .logger import logger
 from .auth import IBAuth
-from .util import AuthenticationError, HTTPError
+from .util import AuthenticationError, HTTPStatusError
 
 __all__ = [
     "IBAuth",
@@ -23,7 +24,7 @@ def auth_from_yaml(path: str | Path) -> IBAuth:
         IBAuth: An instance of IBAuth.
     """
     path_absolute = Path(path).resolve()
-    logger.info(f"Load configuration from {path_absolute}.")
+    logger.debug(f"Load configuration from {path_absolute}.")
     with open(path_absolute, "r") as f:
         config = yaml.safe_load(f)
 
@@ -35,7 +36,7 @@ def auth_from_yaml(path: str | Path) -> IBAuth:
             private_key_file=config["private_key_file"],
             domain=config.get("domain", DEFAULT_DOMAIN),
         )
-    except HTTPError:
+    except HTTPStatusError:
         raise AuthenticationError("Authentication failed")
 
 
@@ -53,8 +54,12 @@ def main() -> None:  # pragma: no cover
         level=logging.DEBUG if args.debug else logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s"
     )
 
-    try:
-        auth_from_yaml(args.config)
-    except AuthenticationError:
-        logger.error("🚨 Failed to create IBAuth instance.")
-        sys.exit(1)
+    async def run() -> None:
+        try:
+            auth = auth_from_yaml(args.config)
+            await auth.connect()
+        except AuthenticationError:
+            logger.error("🚨 Failed to create IBAuth instance.")
+            sys.exit(1)
+
+    asyncio.run(run())
