@@ -1,85 +1,72 @@
 import time
 import pytest
 from unittest.mock import Mock, patch
-from requests import Response, Request
-from requests.exceptions import HTTPError
+from httpx import Response, Request
 from ibauth import util
 from typing import Any
 
 
-def test_log_response_success(caplog: Any) -> None:
+def create_mock_response(status_code: int = 200) -> Mock:
     mock_response = Mock(spec=Response)
-    mock_response.status_code = 200
-    mock_response.text = "ok"
+    mock_response.status_code = status_code
+    mock_response.text = ""
     mock_response.headers = {"Content-Type": "text/plain"}
 
-    req = Request("GET", "https://example.com", headers={"X-Test": "1"}).prepare()
+    req = Request("GET", "https://example.com", headers={"X-Test": "1"})
+
     mock_response.request = req
 
     mock_response.raise_for_status.return_value = None
+
+    return mock_response
+
+
+def test_log_response_success(caplog: Any) -> None:
+    mock_response = create_mock_response()
 
     caplog.set_level("DEBUG")
     util.log_response(mock_response)
 
     logs = caplog.messages
-    assert any("Response: 200 ok" in msg for msg in logs)
+    assert any("Response: 200" in msg for msg in logs)
     mock_response.raise_for_status.assert_called_once()
 
 
 def test_log_response_http_error() -> None:
-    mock_response = Mock(spec=Response)
-    mock_response.status_code = 400
-    mock_response.text = "bad"
-    mock_response.headers = {"Content-Type": "text/plain"}
-    mock_response.request = Mock()
+    mock_response = create_mock_response(status_code=400)
 
-    req = Request("GET", "https://example.com", headers={"X-Test": "1"}).prepare()
-    mock_response.request = req
+    mock_response.raise_for_status.side_effect = util.HTTPStatusError(
+        "boom", request=mock_response.request, response=mock_response
+    )
 
-    mock_response.raise_for_status.side_effect = HTTPError("boom")
-
-    with pytest.raises(HTTPError):
+    with pytest.raises(util.HTTPStatusError):
         util.log_response(mock_response)
 
 
-@patch("ibauth.util.requests.get")
-def test_get_calls_requests_get(mock_get: Mock) -> None:
-    mock_response = Mock(spec=Response)
-    mock_response.status_code = 200
-    mock_response.text = "ok"
-    mock_response.headers = {"Content-Type": "text/plain"}
-    mock_response.request = Mock()
+@pytest.mark.asyncio  # type: ignore[misc]
+@patch("ibauth.util.httpx.AsyncClient.get")
+async def test_get_calls_requests_get(mock_get: Mock) -> None:
+    mock_response = create_mock_response()
 
-    req = Request("GET", "https://example.com", headers={"X-Test": "1"}).prepare()
-    mock_response.request = req
-
-    mock_response.raise_for_status.return_value = None
     mock_get.return_value = mock_response
 
-    resp = util.get("https://example.com", headers={"h": "v"}, timeout=1.0)
+    resp = await util.get("https://example.com", headers={"h": "v"})
 
-    mock_get.assert_called_once_with("https://example.com", headers={"h": "v"}, timeout=1.0)
+    mock_get.assert_called_once_with("https://example.com", headers={"h": "v"})
     assert resp is mock_response
 
 
-@patch("ibauth.util.requests.post")
-def test_post_calls_requests_post(mock_post: Mock) -> None:
-    mock_response = Mock(spec=Response)
-    mock_response.status_code = 200
-    mock_response.text = "ok"
-    mock_response.headers = {"Content-Type": "text/plain"}
-    mock_response.request = Mock()
+@pytest.mark.asyncio  # type: ignore[misc]
+@patch("ibauth.util.httpx.AsyncClient.post")
+async def test_post_calls_requests_post(mock_post: Mock) -> None:
+    mock_response = create_mock_response()
 
-    req = Request("GET", "https://example.com", headers={"X-Test": "1"}).prepare()
-    mock_response.request = req
-
-    mock_response.raise_for_status.return_value = None
     mock_post.return_value = mock_response
 
-    resp = util.post("https://example.com", data={"a": "b"}, json=None, headers={"h": "v"}, timeout=2.0)
+    resp = await util.post("https://example.com", data={"a": "b"}, json=None, headers={"h": "v"})
 
     mock_post.assert_called_once_with(
-        "https://example.com", data={"a": "b"}, json=None, headers={"h": "v"}, timeout=2.0
+        "https://example.com", content={"a": "b"}, data=None, json=None, headers={"h": "v"}
     )
     assert resp is mock_response
 
