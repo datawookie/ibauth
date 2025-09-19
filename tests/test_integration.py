@@ -11,15 +11,18 @@ def _ensure_configuration_present() -> None:
         pytest.skip("No config.yaml file.")
 
 
+@pytest.mark.asyncio  # type: ignore[misc]
 @pytest.mark.integration  # type: ignore[misc]
-def test_full_auth_flow_real() -> None:
+@pytest.mark.timeout(20)  # type: ignore[misc]
+async def test_full_auth_flow_real() -> None:
     auth = auth_from_yaml("config.yaml")
-    auth.get_access_token()
-    auth.get_bearer_token()
-    auth.ssodh_init()
-    auth.validate_sso()
+    await auth.connect()
+    await auth.get_access_token()
+    await auth.get_bearer_token()
+    await auth.ssodh_init()
+    await auth.validate_sso()
     for _ in range(3):
-        auth.tickle()
+        await auth.tickle()
     auth.domain = "5.api.ibkr.com"
-    auth.tickle()
-    auth.logout()
+    await auth.tickle()
+    await auth.logout()

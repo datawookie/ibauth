@@ -51,7 +51,14 @@ async def post(
     logger.debug(f"  - data: {dumps(data, indent=2) if data else None}")
     logger.debug(f"  - JSON: {dumps(json, indent=2) if json else None}")
     async with httpx.AsyncClient(timeout=timeout) as client:
-        response = await client.post(url, data=data, json=json, headers=headers)
+        form_encoded = headers and headers.get("Content-Type") == "application/x-www-form-urlencoded"
+        response = await client.post(
+            url,
+            content=data if headers and not form_encoded else None,
+            data=data if headers and form_encoded else None,
+            json=json,
+            headers=headers,
+        )
         log_response(response)
         return response
 

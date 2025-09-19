@@ -299,6 +299,7 @@ dev = [
     { name = "bump2version" },
     { name = "mypy" },
     { name = "pre-commit" },
+    { name = "pytest-asyncio" },
     { name = "ruff" },
 ]
 test = [
@@ -324,6 +325,7 @@ dev = [
     { name = "bump2version", specifier = ">=1.0.1" },
     { name = "mypy", specifier = ">=1.16.0" },
     { name = "pre-commit", specifier = ">=4.1.0" },
+    { name = "pytest-asyncio", specifier = ">=1.1.0" },
     { name = "ruff", specifier = ">=0.13.0" },
 ]
 test = [
