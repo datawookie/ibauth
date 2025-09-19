@@ -1,5 +1,9 @@
 # Change Log
 
+## [0.1.0] - 2025-09-19
+
+- Convert to fully async.
+
 ## [0.0.12] - 2025-09-17
 
 - Handle logout when not authenticated.
