@@ -1,6 +1,6 @@
 [project]
 name = "ibauth"
-version = "0.0.12"
+version = "0.1.0"
 description = "Interactive Brokers OAuth"
 authors = [
   {name = "Andrew Collier"}
