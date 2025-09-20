@@ -1,27 +1,12 @@
 import time
 import pytest
 from unittest.mock import Mock, patch
-from httpx import Response, Request
 from ibauth import util
-from typing import Any
+
+from conftest import create_mock_response
 
 
-def create_mock_response(status_code: int = 200) -> Mock:
-    mock_response = Mock(spec=Response)
-    mock_response.status_code = status_code
-    mock_response.text = ""
-    mock_response.headers = {"Content-Type": "text/plain"}
-
-    req = Request("GET", "https://example.com", headers={"X-Test": "1"})
-
-    mock_response.request = req
-
-    mock_response.raise_for_status.return_value = None
-
-    return mock_response
-
-
-def test_log_response_success(caplog: Any) -> None:
+def test_log_response_success(caplog: pytest.LogCaptureFixture) -> None:
     mock_response = create_mock_response()
 
     caplog.set_level("DEBUG")

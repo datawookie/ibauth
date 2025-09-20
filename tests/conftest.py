@@ -1,5 +1,7 @@
 from pathlib import Path
 from typing import Any, Iterator
+from unittest.mock import Mock, AsyncMock
+from httpx import Response, Request
 
 import pytest
 import tenacity
@@ -27,6 +29,22 @@ def disable_timing(monkeypatch: Any) -> Iterator[None]:
 
     monkeypatch.setattr(ibauth.timing, "AsyncTimer", DummyTiming)
     yield
+
+
+@pytest.fixture(autouse=True)  # type: ignore[misc]
+def disable_ibauth_connect(monkeypatch: Any, request: pytest.FixtureRequest) -> Iterator[Mock | None]:
+    """
+    Patch IBAuth.connect with a Mock for all tests so calls can be tracked.
+
+    Use @pytest.mark.no_patch_connect if you want the original connect().
+    """
+    if request.node.get_closest_marker("no_patch_connect"):
+        yield None
+        return
+
+    mock_connect = AsyncMock(return_value=None)
+    monkeypatch.setattr("ibauth.auth.IBAuth.connect", mock_connect)
+    yield mock_connect
 
 
 @pytest.fixture  # type: ignore[misc]
@@ -90,4 +108,19 @@ def session_details_payload() -> dict[str, Any]:
         region="EU",
     ).model_dump()
 
-    return payload
+    return payload  # type: ignore[no-any-return]
+
+
+def create_mock_response(status_code: int = 200) -> Mock:
+    mock_response = Mock(spec=Response)
+    mock_response.status_code = status_code
+    mock_response.text = ""
+    mock_response.headers = {"Content-Type": "text/plain"}
+
+    req = Request("GET", "https://example.com", headers={"X-Test": "1"})
+
+    mock_response.request = req
+
+    mock_response.raise_for_status.return_value = None
+
+    return mock_response
