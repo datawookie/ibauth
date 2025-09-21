@@ -56,7 +56,7 @@ class IBAuth:
         if domain not in VALID_DOMAINS:
             raise ValueError(f"Invalid domain: {domain}.")
         else:
-            self.domain = domain
+            self._domain = domain
 
         self.client_id = client_id
         self.client_key_id = client_key_id
@@ -92,6 +92,15 @@ class IBAuth:
     @property
     def url_client_portal(self) -> str:
         return f"https://{self.domain}"
+
+    @property
+    def header(self) -> dict[str, str]:
+        """
+        Return the authorization header for API requests.
+        """
+        if self.bearer_token is None:
+            raise ValueError("⛔ No bearer token found. Please connect first.")
+        return {"Authorization": "Bearer " + self.bearer_token}
 
     @property
     def domain(self) -> str:
@@ -247,8 +256,8 @@ class IBAuth:
         url = f"{self.url_client_portal}/v1/api/tickle"
 
         headers = {
-            "Authorization": "Bearer " + self.bearer_token,  # type: ignore
             "User-Agent": "python/3.11",
+            **self.header,
         }
 
         try:

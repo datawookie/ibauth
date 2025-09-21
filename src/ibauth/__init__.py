@@ -58,6 +58,11 @@ def main() -> None:  # pragma: no cover
         try:
             auth = auth_from_yaml(args.config)
             await auth.connect()
+            logger.info(f"- IP: {auth.IP}")
+            logger.info(f"- domain: {auth.domain}")
+            logger.info(f"- header: {auth.header}")
+            logger.info("✅ Successfully created IBAuth instance and connected.")
+            await auth.tickle()
         except AuthenticationError:
             logger.error("🚨 Failed to create IBAuth instance.")
             sys.exit(1)
