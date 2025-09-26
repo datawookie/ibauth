@@ -103,14 +103,14 @@ class IBAuth:
             raise ValueError("⛔ No bearer token found. Please connect first.")
         return {"Authorization": "Bearer " + self.bearer_token}
 
+    def is_connected(self) -> bool:
+        return self.connected and self.authenticated  # type: ignore[return-value]
+
     @property
     def domain(self) -> str:
         return self._domain
 
-    def is_connected(self) -> bool:
-        return self.connected and self.authenticated  # type: ignore[return-value]
-
-    @domain.setter  # type: ignore[no-redef,attr-defined,misc]
+    @domain.setter
     def domain(self, value: str) -> None:
         """
         Set and validate the domain.

@@ -46,6 +46,22 @@ def test_missing_private_key_file(private_key_file: Path) -> None:
         IBAuth("cid", "kid", "cred", "", domain="api.ibkr.com")
 
 
+def test_property_header(flow: IBAuth) -> None:
+    with pytest.raises(ValueError):
+        flow.header
+
+    flow.bearer_token = "bearer123"
+    header = flow.header
+    assert "Authorization" in header
+    assert header["Authorization"].startswith("Bearer ")
+
+
+def test_is_connected(flow: IBAuth) -> None:
+    flow.authenticated = True
+    flow.connected = True
+    assert flow.is_connected()
+
+
 @pytest.mark.asyncio  # type: ignore[misc]
 @patch("ibauth.auth.get")
 async def test_check_ip_sets_ip(mock_get: Mock, flow: IBAuth) -> None:

@@ -5,7 +5,7 @@ from pathlib import Path
 from .const import DEFAULT_DOMAIN
 from .logger import logger
 from .auth import IBAuth
-from .util import AuthenticationError, HTTPStatusError
+from .util import AuthenticationError
 
 __all__ = [
     "IBAuth",
@@ -28,16 +28,13 @@ def auth_from_yaml(path: str | Path) -> IBAuth:
     with open(path_absolute, "r") as f:
         config = yaml.safe_load(f)
 
-    try:
-        return IBAuth(
-            client_id=config["client_id"],
-            client_key_id=config["client_key_id"],
-            credential=config["credential"],
-            private_key_file=config["private_key_file"],
-            domain=config.get("domain", DEFAULT_DOMAIN),
-        )
-    except HTTPStatusError:
-        raise AuthenticationError("Authentication failed")
+    return IBAuth(
+        client_id=config["client_id"],
+        client_key_id=config["client_key_id"],
+        credential=config["credential"],
+        private_key_file=config["private_key_file"],
+        domain=config.get("domain", DEFAULT_DOMAIN),
+    )
 
 
 def main() -> None:  # pragma: no cover

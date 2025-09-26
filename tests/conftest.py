@@ -108,7 +108,7 @@ def session_details_payload() -> dict[str, Any]:
         region="EU",
     ).model_dump()
 
-    return payload  # type: ignore[no-any-return]
+    return payload
 
 
 def create_mock_response(status_code: int = 200) -> Mock:
