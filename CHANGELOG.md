@@ -1,5 +1,12 @@
 # Change Log
 
+## [0.1.1] - 2025-09-26
+
+- Improve logging.
+- Improve README.
+- Handle 401 error during tickle.
+- Add a `header` attribute.
+
 ## [0.1.0] - 2025-09-19
 
 - Convert to fully async.
