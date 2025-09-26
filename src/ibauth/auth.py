@@ -76,9 +76,9 @@ class IBAuth:
 
         # These fields are set in the tickle() method.
         #
-        self.authenticated = None
-        self.connected = None
-        self.competing = None
+        self.authenticated: bool | None = None
+        self.connected: bool | None = None
+        self.competing: bool | None = None
 
         self.IP = None
 
@@ -110,7 +110,7 @@ class IBAuth:
     def is_connected(self) -> bool:
         return self.connected and self.authenticated  # type: ignore[return-value]
 
-    @domain.setter
+    @domain.setter  # type: ignore[no-redef,attr-defined,misc]
     def domain(self, value: str) -> None:
         """
         Set and validate the domain.
@@ -175,7 +175,7 @@ class IBAuth:
             "scope": SCOPE,
         }
 
-        logger.info("Request access token.")
+        logger.info(f"Request access token ({url}).")
         response = await post(url=url, headers=headers, data=form_data)
 
         # TODO: Add Pydantic model for response.
@@ -202,12 +202,28 @@ class IBAuth:
             "iss": f"{self.client_id}",
         }
 
-        logger.info("Request bearer token.")
+        logger.info(f"Request bearer token ({url}).")
         response = await post(url=url, headers=headers, data=self._compute_jws(claims, url, exp=86400))
         logger.info("🟢 Brokerage session initiated.")
 
         # TODO: Add Pydantic model for response.
         self.bearer_token = response.json()["access_token"]
+
+    async def validate_sso(self) -> None:
+        url = f"{self.url_client_portal}/v1/api/sso/validate"
+
+        headers = {
+            "Authorization": "Bearer " + self.bearer_token,  # type: ignore
+            "User-Agent": "python/3.11",
+        }
+
+        logger.info(f"Validate brokerage session ({url}).")
+        response = await get(url=url, headers=headers)  # noqa: F841
+
+        # Extract session details.
+        session = SessionDetailsModel(**response.json())
+        logger.debug("Session details:")
+        logger.debug(f"  - User: {session.USER_NAME}")
 
     async def ssodh_init(self) -> None:
         """
@@ -225,30 +241,15 @@ class IBAuth:
             "User-Agent": "python/3.11",
         }
 
-        logger.info("Initiate a brokerage session.")
+        logger.info(f"Initialise a brokerage session ({url}).")
         try:
             response = await post(url=url, headers=headers, json={"publish": True, "compete": True})
         except HTTPStatusError as error:
-            logger.error(f"⛔ Error initiating a brokerage session ({error}).")
+            status_code = error.response.status_code
+            logger.error(f"⛔ Error initialising brokerage session (status={status_code}).")
             raise
 
         logger.debug(f"Response content: {response.json()}.")
-
-    async def validate_sso(self) -> None:
-        url = f"{self.url_client_portal}/v1/api/sso/validate"
-
-        headers = {
-            "Authorization": "Bearer " + self.bearer_token,  # type: ignore
-            "User-Agent": "python/3.11",
-        }
-
-        logger.info("Validate brokerage session.")
-        response = await get(url=url, headers=headers)  # noqa: F841
-
-        # Extract session details.
-        session = SessionDetailsModel(**response.json())
-        logger.debug("Session details:")
-        logger.debug(f"  - User: {session.USER_NAME}")
 
     async def tickle(self) -> str:
         """
@@ -278,10 +279,10 @@ class IBAuth:
                 self.competing = None
                 self.connected = False
             else:
-                logger.error(f"⛔ Error connecting to session (status={status_code}): {error}.")
+                logger.error(f"⛔ Error connecting to session in tickle (status={status_code}): {error}.")
             raise
         except ReadTimeout:
-            logger.error("⛔ Timeout connecting to session.")
+            logger.error("⛔ Timeout connecting to session in tickle.")
             raise
 
         self.session_id: str = response.json()["session"]
