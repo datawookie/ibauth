@@ -1,3 +1,4 @@
+from http import HTTPStatus
 import math
 from typing import Any
 import time
@@ -105,6 +106,9 @@ class IBAuth:
     @property
     def domain(self) -> str:
         return self._domain
+
+    def is_connected(self) -> bool:
+        return self.connected and self.authenticated  # type: ignore[return-value]
 
     @domain.setter
     def domain(self, value: str) -> None:
@@ -265,8 +269,19 @@ class IBAuth:
             async with AsyncTimer() as duration:
                 response = await get(url=url, headers=headers, timeout=self.timeout)
             logger.info(f"🔔 Tickle (RTT: {duration.duration:.3f} s) [status={response.status_code}]")
-        except (HTTPStatusError, ReadTimeout) as error:
-            logger.error(f"⛔ Error connecting to session ({error}).")
+        except HTTPStatusError as error:
+            status_code = error.response.status_code
+            if status_code == HTTPStatus.UNAUTHORIZED:
+                logger.error("⛔ Unauthorised.")
+                # Infer updated status.
+                self.authenticated = False
+                self.competing = None
+                self.connected = False
+            else:
+                logger.error(f"⛔ Error connecting to session (status={status_code}): {error}.")
+            raise
+        except ReadTimeout:
+            logger.error("⛔ Timeout connecting to session.")
             raise
 
         self.session_id: str = response.json()["session"]
@@ -326,7 +341,8 @@ class IBAuth:
             else:
                 logger.error("⛔ Error terminating brokerage session.")
                 raise
-        logger.info("🔴 Brokerage session terminated.")
+        else:
+            logger.info("🔴 Brokerage session terminated.")
 
     async def connect(self) -> None:
         """
