@@ -1,3 +1,5 @@
+<img src="https://github.com/user-attachments/assets/def9c19a-f270-4b65-92b4-e7de15abe4f6" />
+
 # IBKR Authentication Workflow
 
 ![PyPI - Version](https://img.shields.io/pypi/v/ibauth)

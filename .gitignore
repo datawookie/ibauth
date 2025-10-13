@@ -9,3 +9,4 @@ wheels/
 config.yaml
 *.code-workspace
 .coverage
+*.png
