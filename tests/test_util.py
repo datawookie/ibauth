@@ -28,6 +28,17 @@ def test_log_response_http_error() -> None:
         util.log_response(mock_response)
 
 
+def test_log_response_json(caplog: pytest.LogCaptureFixture) -> None:
+    mock_response = create_mock_response(content_type="application/json")
+
+    caplog.set_level("DEBUG")
+    util.log_response(mock_response)
+
+    logs = caplog.messages
+    assert any("Response: 200" in msg for msg in logs)
+    mock_response.raise_for_status.assert_called_once()
+
+
 @pytest.mark.asyncio  # type: ignore[misc]
 @patch("ibauth.util.httpx.AsyncClient.get")
 async def test_get_calls_requests_get(mock_get: Mock) -> None:

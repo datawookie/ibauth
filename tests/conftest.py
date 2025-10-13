@@ -72,7 +72,7 @@ def flow(private_key_file: Path) -> IBAuth:
 
 
 @pytest.fixture  # type: ignore[misc]
-def session_details_payload() -> dict[str, Any]:
+def session_details_payload() -> Any:
     """Return a minimal valid payload for SessionDetailsModel."""
     payload = SessionDetailsModel(
         PAPER_USER_NAME="testuser",
@@ -111,16 +111,20 @@ def session_details_payload() -> dict[str, Any]:
     return payload
 
 
-def create_mock_response(status_code: int = 200) -> Mock:
+def create_mock_response(
+    status_code: int = 200, content_type: str = "text/plain", text: str = "", json_data: dict[str, Any] | None = None
+) -> Mock:
     mock_response = Mock(spec=Response)
     mock_response.status_code = status_code
-    mock_response.text = ""
-    mock_response.headers = {"Content-Type": "text/plain"}
+    mock_response.text = text
+    mock_response.headers = {"Content-Type": content_type}
 
     req = Request("GET", "https://example.com", headers={"X-Test": "1"})
 
     mock_response.request = req
 
     mock_response.raise_for_status.return_value = None
+
+    mock_response.json.return_value = json_data or {}
 
     return mock_response

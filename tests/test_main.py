@@ -26,6 +26,11 @@ def test_invalid_domain_setter(flow: IBAuth) -> None:
         flow.domain = "not.valid"
 
 
+def test_valid_domain_setter(flow: IBAuth) -> None:
+    flow.domain = "api.ibkr.com"
+    assert flow.domain == "api.ibkr.com"
+
+
 def test_missing_client_id(private_key_file: Path) -> None:
     with pytest.raises(ValueError):
         IBAuth("", "kid", "cred", private_key_file, domain="api.ibkr.com")
