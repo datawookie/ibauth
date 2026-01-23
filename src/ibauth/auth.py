@@ -10,7 +10,7 @@ from .const import GRANT_TYPE, CLIENT_ASSERTION_TYPE, SCOPE, VALID_DOMAINS, DEFA
 from .logger import logger
 from .timing import AsyncTimer
 from .util import make_jws, get, post, ReadTimeout, HTTPStatusError
-from .models import SessionDetailsModel
+from .models import SessionDetailsModel, StatusModel
 
 
 class IBAuth:
@@ -251,6 +251,22 @@ class IBAuth:
 
         logger.debug(f"Response content: {response.json()}.")
 
+    async def status(self) -> StatusModel:
+        """
+        Retrieve current authentication status.
+        """
+        url = f"{self.url_client_portal}/v1/api/iserver/auth/status"
+
+        headers = {
+            "User-Agent": "python/3.11",
+            **self.header,
+        }
+
+        response = await post(url=url, headers=headers, timeout=self.timeout)
+        response.raise_for_status()
+
+        return StatusModel(**response.json())
+
     async def tickle(self) -> str:
         """
         Keeps session alive.
@@ -286,6 +302,7 @@ class IBAuth:
             raise
 
         self.session_id: str = response.json()["session"]
+        # TODO: Use StatusModel here.
         auth_status = response.json()["iserver"]["authStatus"]
         self.authenticated = auth_status["authenticated"]
         self.competing = auth_status["competing"]

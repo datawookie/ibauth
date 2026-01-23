@@ -1,4 +1,5 @@
 from pydantic import BaseModel
+from pydantic_extra_types.mac_address import MacAddress
 
 
 class SessionFeaturesModel(BaseModel):
@@ -35,3 +36,10 @@ class SessionDetailsModel(BaseModel):
     IS_MASTER: bool
     features: SessionFeaturesModel
     region: str
+
+
+class StatusModel(BaseModel):
+    authenticated: bool
+    competing: bool
+    connected: bool
+    MAC: MacAddress

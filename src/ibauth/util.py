@@ -33,6 +33,7 @@ def log_response(response: httpx.Response) -> None:
 
 async def get(url: str, headers: dict[str, str] | None = None, timeout: float | None = None) -> httpx.Response:
     logger.debug(f"🔄 GET {url}")
+    logger.debug(f"  - headers: {headers}")
     async with httpx.AsyncClient(timeout=timeout) as client:
         response = await client.get(url, headers=headers)
         log_response(response)
