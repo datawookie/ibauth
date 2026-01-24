@@ -59,6 +59,7 @@ class IBAuth:
         else:
             self._domain = domain
 
+        self.session_id: str | None = None
         self.client_id = client_id
         self.client_key_id = client_key_id
         self.credential = credential
@@ -175,7 +176,7 @@ class IBAuth:
             "scope": SCOPE,
         }
 
-        logger.info(f"Request access token ({url}).")
+        logger.info("Request access token.")
         response = await post(url=url, headers=headers, data=form_data)
 
         # TODO: Add Pydantic model for response.
@@ -202,7 +203,7 @@ class IBAuth:
             "iss": f"{self.client_id}",
         }
 
-        logger.info(f"Request bearer token ({url}).")
+        logger.info("Request bearer token.")
         response = await post(url=url, headers=headers, data=self._compute_jws(claims, url, exp=86400))
         logger.info("🟢 Brokerage session initiated.")
 
@@ -217,7 +218,7 @@ class IBAuth:
             "User-Agent": "python/3.11",
         }
 
-        logger.info(f"Validate brokerage session ({url}).")
+        logger.info("Validate brokerage session.")
         response = await get(url=url, headers=headers)  # noqa: F841
 
         # Extract session details.
@@ -241,7 +242,7 @@ class IBAuth:
             "User-Agent": "python/3.11",
         }
 
-        logger.info(f"Initialise a brokerage session ({url}).")
+        logger.info("Initialise a brokerage session.")
         try:
             response = await post(url=url, headers=headers, json={"publish": True, "compete": True})
         except HTTPStatusError as error:
@@ -301,7 +302,7 @@ class IBAuth:
             logger.error("⛔ Timeout connecting to session in tickle.")
             raise
 
-        self.session_id: str = response.json()["session"]
+        self.session_id = response.json()["session"]
         # TODO: Use StatusModel here.
         auth_status = response.json()["iserver"]["authStatus"]
         self.authenticated = auth_status["authenticated"]
