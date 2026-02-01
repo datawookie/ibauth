@@ -120,7 +120,6 @@ async def test_check_ip_change(flow: IBAuth, caplog: pytest.LogCaptureFixture) -
         ip2 = await flow._check_ip()
 
         assert ip2 == "5.6.7.8"
-        # Verify warning was logged
         warnings = [rec.getMessage() for rec in caplog.records if rec.levelname == "WARNING"]
         assert any("Public IP has changed" in msg for msg in warnings)
 

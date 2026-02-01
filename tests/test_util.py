@@ -80,14 +80,12 @@ def test_make_jws_sets_claims_and_calls_jwt(mock_encode: Mock) -> None:
 
     assert token == "encoded.jwt"
 
-    # Check positional args
     called_claims, called_key = mock_encode.call_args[0]
     assert isinstance(called_claims, dict)
     assert called_key == fake_key
     assert called_claims["iat"] >= t0
     assert called_claims["exp"] >= t0
 
-    # Check keyword args
     kwargs = mock_encode.call_args[1]
     assert kwargs["algorithm"] == "RS256"
     assert kwargs["headers"] == header
@@ -96,11 +94,9 @@ def test_make_jws_sets_claims_and_calls_jwt(mock_encode: Mock) -> None:
 def test_authentication_error_with_code() -> None:
     err = util.AuthenticationError("Invalid credentials", code=401)
 
-    # Exception should carry the message
     assert str(err) == "Invalid credentials"
     # And the custom code
     assert err.code == 401
-    # It should also be an Exception subclass
     assert isinstance(err, Exception)
 
 
