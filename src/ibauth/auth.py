@@ -244,7 +244,7 @@ class IBAuth:
 
         logger.info("Initialise a brokerage session.")
         try:
-            response = await post(url=url, headers=headers, json={"publish": True, "compete": True})
+            response = await post(url=url, headers=headers, data={"publish": True, "compete": True})
         except HTTPStatusError as error:
             status_code = error.response.status_code
             logger.error(f"⛔ Error initialising brokerage session (status={status_code}).")

@@ -1,0 +1,5 @@
+client_id: "your-client-id"
+client_key_id: "your-key-id"
+credential: "your-credential"
+private_key_file: "/path/to/ibkr-private-key.pem"
+domain: "api.ibkr.com"

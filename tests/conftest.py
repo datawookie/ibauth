@@ -7,17 +7,17 @@ import pytest
 import tenacity
 
 from ibauth import IBAuth
-from ibauth.models import SessionDetailsModel
+from ibauth.models import SessionDetailsModel, SessionFeaturesModel
 import ibauth.timing
 
 from cryptography.hazmat.primitives.asymmetric import rsa
 from cryptography.hazmat.primitives import serialization
 
 # Disable all retries.
-tenacity.retry = lambda *a, **kw: (lambda f: f)
+tenacity.retry = lambda *a, **kw: (lambda f: f)  # ty: ignore[invalid-assignment]
 
 
-@pytest.fixture(autouse=True)  # type: ignore[misc]
+@pytest.fixture(autouse=True)
 def disable_timing(monkeypatch: Any) -> Iterator[None]:
     """
     Replace ibauth.timing.timing with a no-op context manager for tests.
@@ -31,7 +31,7 @@ def disable_timing(monkeypatch: Any) -> Iterator[None]:
     yield
 
 
-@pytest.fixture(autouse=True)  # type: ignore[misc]
+@pytest.fixture(autouse=True)
 def disable_ibauth_connect(monkeypatch: Any, request: pytest.FixtureRequest) -> Iterator[Mock | None]:
     """
     Patch IBAuth.connect with a Mock for all tests so calls can be tracked.
@@ -47,7 +47,7 @@ def disable_ibauth_connect(monkeypatch: Any, request: pytest.FixtureRequest) -> 
     yield mock_connect
 
 
-@pytest.fixture  # type: ignore[misc]
+@pytest.fixture
 def private_key_file(tmp_path: Path) -> Iterator[Path]:
     key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
     pem = key.private_bytes(
@@ -60,7 +60,7 @@ def private_key_file(tmp_path: Path) -> Iterator[Path]:
     yield key_file
 
 
-@pytest.fixture  # type: ignore[misc]
+@pytest.fixture
 def flow(private_key_file: Path) -> IBAuth:
     return IBAuth(
         client_id="cid",
@@ -71,7 +71,7 @@ def flow(private_key_file: Path) -> IBAuth:
     )
 
 
-@pytest.fixture  # type: ignore[misc]
+@pytest.fixture
 def session_details_payload() -> Any:
     """Return a minimal valid payload for SessionDetailsModel."""
     payload = SessionDetailsModel(
@@ -96,15 +96,15 @@ def session_details_payload() -> Any:
         TOKEN="Bearer:token",
         took=50,
         IS_MASTER=False,
-        features={
-            "env": "PROD",
-            "wlms": True,
-            "realtime": True,
-            "bond": True,
-            "optionChains": True,
-            "calendar": True,
-            "newMf": True,
-        },
+        features=SessionFeaturesModel(
+            env="PROD",
+            wlms=True,
+            realtime=True,
+            bond=True,
+            optionChains=True,
+            calendar=True,
+            newMf=True,
+        ),
         region="EU",
     ).model_dump()
 

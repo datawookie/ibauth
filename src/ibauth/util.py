@@ -42,22 +42,25 @@ async def get(url: str, headers: dict[str, str] | None = None, timeout: float | 
 
 async def post(
     url: str,
-    data: dict[str, Any] | None = None,
-    json: dict[str, Any] | None = None,
+    data: dict[str, Any] | str | None = None,
     headers: dict[str, str] | None = None,
     timeout: float | None = None,
 ) -> httpx.Response:
     logger.debug(f"🔄 POST {url}")
     logger.debug(f"  - headers: {headers}")
     logger.debug(f"  - data: {dumps(data, indent=2) if data else None}")
-    logger.debug(f"  - JSON: {dumps(json, indent=2) if json else None}")
+
+    is_form = headers and headers.get("Content-Type") == "application/x-www-form-urlencoded"
+
     async with httpx.AsyncClient(timeout=timeout) as client:
-        form_encoded = headers and headers.get("Content-Type") == "application/x-www-form-urlencoded"
         response = await client.post(
             url,
-            content=data if headers and not form_encoded else None,
-            data=data if headers and form_encoded else None,
-            json=json,
+            # Data is raw string.
+            content=data if isinstance(data, str) else None,
+            # Data is form-encoded.
+            data=data if isinstance(data, dict) and is_form else None,
+            # Data is not form-encoded.
+            json=data if isinstance(data, dict) and not is_form else None,
             headers=headers,
         )
         log_response(response)
@@ -68,8 +71,9 @@ def make_jws(header: dict[str, Any], claims: dict[str, Any], clientPrivateKey: A
     """
     Create a JSON Web Signature (JWS) using the specified header, claims, and private key.
     """
-    # Set expiration time.
-    claims["exp"] = int(time.time()) + 600
-    claims["iat"] = int(time.time())
+    # Only set defaults if caller didn't set them.
+    now = int(time.time())
+    claims.setdefault("exp", now + 600)
+    claims.setdefault("iat", now)
 
     return jwt.encode(claims, clientPrivateKey, algorithm="RS256", headers=header)

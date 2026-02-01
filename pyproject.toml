@@ -13,7 +13,6 @@ requires-python = ">=3.11"
 dependencies = [
     "cryptography>=44.0.2",
     "httpx>=0.28.1",
-    "mypy>=1.15.0",
     "pydantic>=2.11.10",
     "pydantic-extra-types>=2.11.0",
     "pyjwt>=2.10.1",
@@ -25,7 +24,7 @@ dependencies = [
 dev = [
     "bump2version>=1.0.1",
     "pre-commit>=4.1.0",
-    "mypy>=1.16.0",
+    "ty>=0.0.14",
     "ruff>=0.13.3",
     "pytest-asyncio>=1.1.0",
     "pictex>=1.5.0",
@@ -39,14 +38,6 @@ test = [
 
 [build-system]
 requires = ["setuptools"]
-
-[tool.mypy]
-ignore_missing_imports = false
-plugins = ["pydantic.mypy"]
-
-[[tool.mypy.overrides]]
-module = ["requests", "requests.exceptions", "curlify", "yaml"]
-ignore_missing_imports = true
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
@@ -70,6 +61,9 @@ include = ["src/*"]
 show_missing = true
 skip_covered = false
 precision = 1
+
+[tool.ty.environment]
+python = "./.venv"
 
 [project.scripts]
 ibauth = "ibauth:main"

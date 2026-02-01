@@ -23,9 +23,8 @@ repos:
     hooks:
     -   id: detect-secrets
         args: ['--baseline', '.secrets.baseline']
--   repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.19.1
+-   repo: https://github.com/allganize/ty-pre-commit
+    rev: v0.0.14
     hooks:
-    -   id: mypy
-        args: [--strict, --ignore-missing-imports]
-        additional_dependencies: ['pydantic>=2.11.7']
+    -   id: ty-check
+        args: [ --verbose, --output-format=full ]

@@ -67,7 +67,7 @@ def test_is_connected(flow: IBAuth) -> None:
     assert flow.is_connected()
 
 
-@pytest.mark.asyncio  # type: ignore[misc]
+@pytest.mark.asyncio
 @patch("ibauth.auth.get")
 async def test_check_ip_sets_ip(mock_get: Mock, flow: IBAuth) -> None:
     mock_get.return_value.content = b"1.2.3.4"
@@ -76,7 +76,7 @@ async def test_check_ip_sets_ip(mock_get: Mock, flow: IBAuth) -> None:
     assert flow.IP == "1.2.3.4"
 
 
-@pytest.mark.asyncio  # type: ignore[misc]
+@pytest.mark.asyncio
 @patch("ibauth.auth.post")
 async def test_get_access_token(mock_post: AsyncMock, flow: IBAuth) -> None:
     mock_response = Mock()
@@ -88,7 +88,7 @@ async def test_get_access_token(mock_post: AsyncMock, flow: IBAuth) -> None:
     assert flow.access_token == "abc123"
 
 
-@pytest.mark.asyncio  # type: ignore[misc]
+@pytest.mark.asyncio
 @patch("ibauth.auth.post")
 @patch.object(IBAuth, "_check_ip")
 async def test_get_bearer_token(mock_check_ip: Mock, mock_post: AsyncMock, flow: IBAuth) -> None:
@@ -103,8 +103,8 @@ async def test_get_bearer_token(mock_check_ip: Mock, mock_post: AsyncMock, flow:
     assert flow.bearer_token == "bearer123"
 
 
-@pytest.mark.asyncio  # type: ignore[misc]
-@pytest.mark.usefixtures("flow")  # type: ignore[misc]
+@pytest.mark.asyncio
+@pytest.mark.usefixtures("flow")
 async def test_check_ip_change(flow: IBAuth, caplog: pytest.LogCaptureFixture) -> None:
     # Get initial IP.
     with patch("ibauth.auth.get") as mock_get:
@@ -125,7 +125,7 @@ async def test_check_ip_change(flow: IBAuth, caplog: pytest.LogCaptureFixture) -
         assert any("Public IP has changed" in msg for msg in warnings)
 
 
-@pytest.mark.asyncio  # type: ignore[misc]
+@pytest.mark.asyncio
 @patch("ibauth.auth.post")
 async def test_ssodh_init_success(mock_post: Mock, flow: IBAuth) -> None:
     flow.bearer_token = "bearer123"
@@ -135,7 +135,7 @@ async def test_ssodh_init_success(mock_post: Mock, flow: IBAuth) -> None:
     await flow.ssodh_init()
 
 
-@pytest.mark.asyncio  # type: ignore[misc]
+@pytest.mark.asyncio
 @patch("ibauth.auth.post")
 async def test_ssodh_init_failure(mock_post: Mock, flow: IBAuth, monkeypatch: Any) -> None:
     mock_response = create_mock_response(status_code=400)
@@ -147,7 +147,7 @@ async def test_ssodh_init_failure(mock_post: Mock, flow: IBAuth, monkeypatch: An
         await flow.ssodh_init()
 
 
-@pytest.mark.asyncio  # type: ignore[misc]
+@pytest.mark.asyncio
 @patch("ibauth.auth.get")
 async def test_validate_sso(mock_get: Mock, flow: IBAuth, session_details_payload: dict[str, Any]) -> None:
     flow.bearer_token = "bearer123"
@@ -160,7 +160,7 @@ async def test_validate_sso(mock_get: Mock, flow: IBAuth, session_details_payloa
     mock_get.assert_called_once()
 
 
-@pytest.mark.asyncio  # type: ignore[misc]
+@pytest.mark.asyncio
 @patch("ibauth.auth.post")
 async def test_logout_with_token(mock_post: Mock, flow: IBAuth) -> None:
     flow.bearer_token = "bearer123"
@@ -168,13 +168,13 @@ async def test_logout_with_token(mock_post: Mock, flow: IBAuth) -> None:
     mock_post.assert_called_once()
 
 
-@pytest.mark.asyncio  # type: ignore[misc]
+@pytest.mark.asyncio
 async def test_logout_without_token(flow: IBAuth) -> None:
     flow.bearer_token = None
     await flow.logout()
 
 
-@pytest.mark.asyncio  # type: ignore[misc]
+@pytest.mark.asyncio
 @patch("ibauth.auth.post")
 async def test_logout_not_authenticated(mock_post: Mock, flow: IBAuth, caplog: pytest.LogCaptureFixture) -> None:
     mock_response = create_mock_response(status_code=401)
@@ -187,8 +187,8 @@ async def test_logout_not_authenticated(mock_post: Mock, flow: IBAuth, caplog: p
     assert any("Can't terminate brokerage session (not authenticated)." in msg for msg in caplog.messages)
 
 
-@pytest.mark.asyncio  # type: ignore[misc]
-@pytest.mark.no_patch_connect  # type: ignore[misc]
+@pytest.mark.asyncio
+@pytest.mark.no_patch_connect
 @patch("ibauth.auth.IBAuth.get_access_token", return_value=None)
 @patch("ibauth.auth.IBAuth.get_bearer_token", return_value=None)
 @patch("ibauth.auth.IBAuth.ssodh_init", return_value=None)
@@ -229,8 +229,8 @@ def test_auth_from_yaml(mock_connect: Mock, tmp_path: Path, private_key_file: st
     assert flow.client_id == "cid"
 
 
-@pytest.mark.asyncio  # type: ignore[misc]
-@pytest.mark.no_patch_connect  # type: ignore[misc]
+@pytest.mark.asyncio
+@pytest.mark.no_patch_connect
 @patch("ibauth.auth.post")
 async def test_auth_from_yaml_failure(mock_post: Mock, tmp_path: Path, private_key_file: str) -> None:
     mock_response = create_mock_response(status_code=400)

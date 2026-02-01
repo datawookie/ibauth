@@ -8,7 +8,7 @@ import pytest
 from ibauth import IBAuth
 
 
-@pytest.mark.asyncio  # type: ignore[misc]
+@pytest.mark.asyncio
 @patch("ibauth.auth.get")
 async def test_tickle_success(mock_get: Mock, flow: IBAuth) -> None:
     flow.bearer_token = "bearer123"
@@ -34,7 +34,7 @@ async def test_tickle_success(mock_get: Mock, flow: IBAuth) -> None:
     assert not flow.competing
 
 
-@pytest.mark.asyncio  # type: ignore[misc]
+@pytest.mark.asyncio
 @patch("ibauth.auth.get")
 async def test_tickle_not_authenticated(
     mock_get: Mock, flow: IBAuth, disable_ibauth_connect: Mock, monkeypatch: Any
@@ -71,7 +71,7 @@ async def test_tickle_not_authenticated(
     assert disable_ibauth_connect.call_count == 2
 
 
-@pytest.mark.asyncio  # type: ignore[misc]
+@pytest.mark.asyncio
 @patch("ibauth.auth.get")
 async def test_tickle_http_error(mock_get: Mock, flow: IBAuth) -> None:
     flow.bearer_token = "bearer123"
@@ -102,7 +102,7 @@ async def test_tickle_http_error(mock_get: Mock, flow: IBAuth) -> None:
     assert flow.competing is None
 
 
-@pytest.mark.asyncio  # type: ignore[misc]
+@pytest.mark.asyncio
 @patch("ibauth.auth.get")
 async def test_tickle_timeout(mock_get: Mock, flow: IBAuth) -> None:
     flow.bearer_token = "bearer123"

@@ -39,7 +39,7 @@ def test_log_response_json(caplog: pytest.LogCaptureFixture) -> None:
     mock_response.raise_for_status.assert_called_once()
 
 
-@pytest.mark.asyncio  # type: ignore[misc]
+@pytest.mark.asyncio
 @patch("ibauth.util.httpx.AsyncClient.get")
 async def test_get_calls_requests_get(mock_get: Mock) -> None:
     mock_response = create_mock_response()
@@ -52,17 +52,17 @@ async def test_get_calls_requests_get(mock_get: Mock) -> None:
     assert resp is mock_response
 
 
-@pytest.mark.asyncio  # type: ignore[misc]
+@pytest.mark.asyncio
 @patch("ibauth.util.httpx.AsyncClient.post")
 async def test_post_calls_requests_post(mock_post: Mock) -> None:
     mock_response = create_mock_response()
 
     mock_post.return_value = mock_response
 
-    resp = await util.post("https://example.com", data={"a": "b"}, json=None, headers={"h": "v"})
+    resp = await util.post("https://example.com", data={"a": "b"}, headers={"h": "v"})
 
     mock_post.assert_called_once_with(
-        "https://example.com", content={"a": "b"}, data=None, json=None, headers={"h": "v"}
+        "https://example.com", content=None, data=None, json={"a": "b"}, headers={"h": "v"}
     )
     assert resp is mock_response
 

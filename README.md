@@ -69,7 +69,7 @@ auth = IBAuth(
   client_id = "Authenticator-Client",
   client_key_id = "main",
   credential = "DiV7hxH5yXAN5x",
-  private_key_file: "/path/to/ibkr-private-key.pem",
+  private_key_file = "/path/to/ibkr-private-key.pem",
 )
 ```
 
@@ -88,7 +88,8 @@ There are a couple of other optional arguments:
 ### Configuration File
 
 A more flexible approach is to create a YAML configuration file rather than
-baking those values into your code. The file might look something like this:
+baking those values into your code. You can copy `config.example.yaml` to
+`config.yaml` and fill in your credentials. The file might look something like this:
 
 ```yaml
 client_id: "Authenticator-Client"
