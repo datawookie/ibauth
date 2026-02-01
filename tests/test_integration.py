@@ -23,6 +23,4 @@ async def test_full_auth_flow_real() -> None:
     await auth.validate_sso()
     for _ in range(3):
         await auth.tickle()
-    auth.domain = "5.api.ibkr.com"
-    await auth.tickle()
     await auth.logout()

@@ -16,39 +16,24 @@ def test_init_valid(flow: IBAuth) -> None:
     assert flow.private_key is not None
 
 
-def test_invalid_domain_constructor(private_key_file: Path) -> None:
-    with pytest.raises(ValueError):
-        IBAuth("cid", "kid", "cred", private_key_file, domain="not.valid")
-
-
-def test_invalid_domain_setter(flow: IBAuth) -> None:
-    with pytest.raises(ValueError):
-        flow.domain = "not.valid"
-
-
-def test_valid_domain_setter(flow: IBAuth) -> None:
-    flow.domain = "api.ibkr.com"
-    assert flow.domain == "api.ibkr.com"
-
-
 def test_missing_client_id(private_key_file: Path) -> None:
     with pytest.raises(ValueError):
-        IBAuth("", "kid", "cred", private_key_file, domain="api.ibkr.com")
+        IBAuth("", "kid", "cred", private_key_file)
 
 
 def test_missing_key_id(private_key_file: Path) -> None:
     with pytest.raises(ValueError):
-        IBAuth("cid", "", "cred", private_key_file, domain="api.ibkr.com")
+        IBAuth("cid", "", "cred", private_key_file)
 
 
 def test_missing_credential(private_key_file: Path) -> None:
     with pytest.raises(ValueError):
-        IBAuth("cid", "kid", "", private_key_file, domain="api.ibkr.com")
+        IBAuth("cid", "kid", "", private_key_file)
 
 
 def test_missing_private_key_file(private_key_file: Path) -> None:
     with pytest.raises(ValueError):
-        IBAuth("cid", "kid", "cred", "", domain="api.ibkr.com")
+        IBAuth("cid", "kid", "cred", "")
 
 
 def test_property_header(flow: IBAuth) -> None:

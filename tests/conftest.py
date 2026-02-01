@@ -67,7 +67,6 @@ def flow(private_key_file: Path) -> IBAuth:
         client_key_id="kid",
         credential="cred",
         private_key_file=private_key_file,
-        domain="api.ibkr.com",
     )
 
 

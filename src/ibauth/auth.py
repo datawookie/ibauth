@@ -6,7 +6,7 @@ from pathlib import Path
 
 from cryptography.hazmat.primitives import serialization
 
-from .const import GRANT_TYPE, CLIENT_ASSERTION_TYPE, SCOPE, VALID_DOMAINS, DEFAULT_DOMAIN
+from .const import GRANT_TYPE, CLIENT_ASSERTION_TYPE, SCOPE, DEFAULT_DOMAIN
 from .logger import logger
 from .timing import AsyncTimer
 from .util import make_jws, get, post, ReadTimeout, HTTPStatusError
@@ -39,7 +39,6 @@ class IBAuth:
         client_key_id: str,
         credential: str,
         private_key_file: str | Path,
-        domain: str = DEFAULT_DOMAIN,
         timeout: float = 10.0,
     ):
         if not client_id:
@@ -54,10 +53,7 @@ class IBAuth:
         if not private_key_file:
             raise ValueError("Required parameter 'private_key_file' is missing.")
 
-        if domain not in VALID_DOMAINS:
-            raise ValueError(f"Invalid domain: {domain}.")
-        else:
-            self._domain = domain
+        self._domain = DEFAULT_DOMAIN
 
         self.session_id: str | None = None
         self.client_id = client_id
@@ -110,16 +106,6 @@ class IBAuth:
     @property
     def domain(self) -> str:
         return self._domain
-
-    @domain.setter
-    def domain(self, value: str) -> None:
-        """
-        Set and validate the domain.
-        """
-        if value not in VALID_DOMAINS:
-            raise ValueError(f"Invalid domain: {value}. Must be one of {VALID_DOMAINS}.")
-        logger.info(f"Domain: {value}")
-        self._domain = value
 
     async def _check_ip(self) -> Any:
         """

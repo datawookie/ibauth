@@ -80,9 +80,8 @@ where
 - `credential` — credential string; and
 - `private_key_file` — path to your RSA private key (`.pem`).
 
-There are a couple of other optional arguments:
+There are optional arguments:
 
-- `domain` — the API domain (defaults to `api.ibkr.com` but supports numbered subdomains like `1.api.ibkr.com`, `5.api.ibkr.com`, …; and
 - `timeout` — timeout (seconds) applied to all network requests.
 
 ### Configuration File
@@ -96,7 +95,6 @@ client_id: "Authenticator-Client"
 client_key_id: "main"
 credential: "DiV7hxH5yXAN5x"
 private_key_file: "/path/to/ibkr-private-key.pem"
-domain: "api.ibkr.com"
 ```
 
 Then use the factory function:
