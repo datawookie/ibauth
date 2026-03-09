@@ -14,7 +14,7 @@ from cryptography.hazmat.primitives.asymmetric import rsa
 from cryptography.hazmat.primitives import serialization
 
 # Disable all retries.
-tenacity.retry = lambda *a, **kw: (lambda f: f)  # ty: ignore[invalid-assignment]
+tenacity.retry = lambda *a, **kw: lambda f: f  # ty: ignore[invalid-assignment]
 
 
 @pytest.fixture(autouse=True)
