@@ -8,11 +8,11 @@ repos:
     -   id: check-yaml
     -   id: check-added-large-files
 -   repo: https://github.com/astral-sh/uv-pre-commit
-    rev: 0.10.9
+    rev: 0.10.10
     hooks:
         - id: uv-lock
 -   repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.15.5
+    rev: v0.15.6
     hooks:
       - id: ruff
         args: ["--fix", "--verbose"]
@@ -23,7 +23,7 @@ repos:
     -   id: detect-secrets
         args: ['--baseline', '.secrets.baseline']
 -   repo: https://github.com/allganize/ty-pre-commit
-    rev: v0.0.21
+    rev: v0.0.23
     hooks:
     -   id: ty-check
         args: [ --verbose, --output-format=full ]
