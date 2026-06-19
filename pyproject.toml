@@ -15,7 +15,7 @@ dependencies = [
     "httpx>=0.28.1",
     "pydantic>=2.11.10",
     "pydantic-extra-types>=2.11.0",
-    "pyjwt>=2.10.1",
+    "pyjwt>=2.13.0",
     "pyyaml>=6.0.2",
     "tenacity>=9.0.0",
 ]
