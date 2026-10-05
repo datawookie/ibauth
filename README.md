@@ -66,10 +66,10 @@ Instantiate a `IBAuth` object (illustrative values for constructor parameters):
 from ibauth import IBAuth
 
 auth = IBAuth(
-  client_id = "Authenticator-Client",
-  client_key_id = "main",
-  credential = "DiV7hxH5yXAN5x",
-  private_key_file = "/path/to/ibkr-private-key.pem",
+    client_id="Authenticator-Client",
+    client_key_id="main",
+    credential="DiV7hxH5yXAN5x",
+    private_key_file="/path/to/ibkr-private-key.pem",
 )
 ```
 
